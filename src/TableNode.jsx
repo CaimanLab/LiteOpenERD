@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Handle, Position } from 'reactflow';
-import { FaPlus, FaTrash, FaKey } from 'react-icons/fa';
+import { FaPlus, FaTrash, FaKey, FaExternalLinkAlt } from 'react-icons/fa';
 
 const tableNodeStyle = {
   backgroundColor: '#fff',
@@ -11,6 +11,9 @@ const tableNodeStyle = {
 };
 
 const headerStyle = {
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
   backgroundColor: '#2c3e50',
   color: 'white',
   padding: '8px 10px',
@@ -91,6 +94,7 @@ function Column({ name, type, tableId, onNameChange, onTypeChange, onDelete, onC
   };
 
   const isPrimaryKey = columnData?.constraints?.some(c => c.type === 'PRIMARY KEY');
+  const isForeignKey = columnData?.constraints?.some(c => c.type === 'FOREIGN KEY');
   const isUnique = columnData?.constraints?.some(c => c.type === 'UNIQUE');
   const isNotNull = columnData?.extra?.includes('Not Null');
   const isAutoIncrement = columnData?.extra?.includes('Auto Increment');
@@ -111,7 +115,8 @@ function Column({ name, type, tableId, onNameChange, onTypeChange, onDelete, onC
           />
         ) : (
           <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-            {isPrimaryKey && <FaKey title="Primary Key" style={{ color: '#f0ad4e' }}/>}
+            {isPrimaryKey && <FaKey title="Primary Key" style={{ color: '#f1c40f', marginRight: '5px' }} />}
+            {isForeignKey && <FaExternalLinkAlt title={`Foreign Key: references ${columnData.constraints.find(c=>c.type==='FOREIGN KEY').references}`} style={{ color: '#3498db', marginRight: '5px' }} />}
             <span onDoubleClick={(e) => { e.stopPropagation(); setIsEditing(true); }} title="Double click to edit">{name}</span>
           </div>
         )}
@@ -171,7 +176,8 @@ export default function TableNode({ data }) {
   return (
     <div style={tableNodeStyle}>
       <Handle type="target" position={Position.Top} />
-      <div style={{...headerStyle, padding: isEditing ? '4px' : '8px 10px'}} onDoubleClick={handleDoubleClick}>
+            <div style={{...headerStyle, padding: isEditing ? '4px' : '8px 10px'}} onDoubleClick={handleDoubleClick}>
+        <div style={{flexGrow: 1, textAlign: 'center'}}>
         {isEditing ? (
           <input
             type="text"
@@ -182,8 +188,12 @@ export default function TableNode({ data }) {
             autoFocus
           />
         ) : (
-          data.label
+                    data.label
         )}
+        </div>
+        <button onClick={(e) => { e.stopPropagation(); data.onDeleteTable(data.id); }} style={{background: 'none', border: 'none', color: 'white', cursor: 'pointer', padding: '0 5px'}} title="Delete table">
+          <FaTrash size={12} />
+        </button>
       </div>
       <div>
         {Object.entries(data.columns || {}).map(([name, col], index, arr) => (

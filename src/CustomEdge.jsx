@@ -1,11 +1,12 @@
 import React from 'react';
-import { getSmoothStepPath, EdgeLabelRenderer } from 'reactflow';
+import { getBezierPath, EdgeLabelRenderer } from 'reactflow';
 import { FaTrash } from 'react-icons/fa';
+import { getMarkerEnd, getMarkerStart, handleCardinalityChange as cycleCardinality } from './CardinalityMarkers';
 
 const foreignObjectSize = 40;
 
-export default function CustomEdge({ id, sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, data }) {
-  const [edgePath, labelX, labelY] = getSmoothStepPath({
+export default function CustomEdge({ id, sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, style = {}, data }) {
+    const [edgePath, labelX, labelY] = getBezierPath({
     sourceX,
     sourceY,
     sourcePosition,
@@ -28,13 +29,18 @@ export default function CustomEdge({ id, sourceX, sourceY, targetX, targetY, sou
     lineHeight: '1'
   };
 
+    const handleCardinalityChange = (id, currentCardinality) => {
+    cycleCardinality(id, currentCardinality, data.onCardinalityChange);
+  };
+
   return (
     <>
       <path
         id={id}
         className="react-flow__edge-path"
         d={edgePath}
-        markerEnd="url(#arrow)"
+        markerEnd={getMarkerEnd(data.cardinality?.target)}
+        markerStart={getMarkerStart(data.cardinality?.source)}
       />
       <EdgeLabelRenderer>
         <div
@@ -45,9 +51,39 @@ export default function CustomEdge({ id, sourceX, sourceY, targetX, targetY, sou
           }}
           className="nodrag nopan"
         >
-          <button style={buttonStyle} onClick={() => data.onEdgeDelete(id)}>
-            <FaTrash />
-          </button>
+          <foreignObject
+            width={60}
+            height={40}
+            x={labelX - 30}
+            y={labelY - 20}
+            className="edgebutton-foreignobject"
+            requiredExtensions="http://www.w3.org/1999/xhtml"
+          >
+            <body xmlns="http://www.w3.org/1999/xhtml">
+              <button 
+                className="edgebutton" 
+                onClick={() => handleCardinalityChange(id, data.cardinality)}
+                title="Click to change cardinality"
+              >
+                {data.cardinality?.source || '1'}:{data.cardinality?.target || 'N'}
+              </button>
+            </body>
+          </foreignObject>
+
+          <foreignObject
+            width={20}
+            height={20}
+            x={targetX - 10}
+            y={targetY - 30}
+            className="edgebutton-foreignobject"
+            requiredExtensions="http://www.w3.org/1999/xhtml"
+          >
+            <body xmlns="http://www.w3.org/1999/xhtml">
+              <button className="edgebutton" onClick={(event) => { event.stopPropagation(); data.onEdgeDelete(id); }}>
+                <FaTrash />
+              </button>
+            </body>
+          </foreignObject>
         </div>
       </EdgeLabelRenderer>
     </>

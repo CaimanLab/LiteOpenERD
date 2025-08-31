@@ -7,6 +7,7 @@ import './App.css';
 import Toolbar from './Toolbar';
 import TableNode from './TableNode';
 import CustomEdge from './CustomEdge';
+import { CardinalityMarkers } from './CardinalityMarkers';
 import ConfirmModal from './ConfirmModal';
 
 const nodeTypes = { table: TableNode };
@@ -33,7 +34,8 @@ const loadState = () => {
 function App() {
     const [diagram, setDiagram] = useState(loadState);
   const [relationCreation, setRelationCreation] = useState({ active: false, source: null });
-  const [deleteConfirmation, setDeleteConfirmation] = useState({ isOpen: false, edgeId: null });
+    const [deleteConfirmation, setDeleteConfirmation] = useState({ isOpen: false, edgeId: null });
+  const [deleteTableConfirmation, setDeleteTableConfirmation] = useState({ isOpen: false, tableId: null });
   const [nodes, setNodes, onNodesChangeInternal] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
 
@@ -61,7 +63,8 @@ function App() {
           onColumnNameChange: handleColumnNameChange,
           onColumnTypeChange: handleColumnTypeChange,
           onColumnDelete: handleColumnDelete,
-          onColumnPropertyChange: handleColumnPropertyChange,
+                    onColumnPropertyChange: handleColumnPropertyChange,
+          onDeleteTable: requestTableDelete,
         columns: table.columnas
       },
     }));
@@ -70,7 +73,11 @@ function App() {
       source: relation.relatedTables[0].objectId,
       target: relation.relatedTables[1].objectId,
       type: 'custom',
-            data: { onEdgeDelete: requestEdgeDelete },
+                  data: { 
+        onEdgeDelete: requestEdgeDelete,
+        onCardinalityChange: handleCardinalityChange,
+        cardinality: relation.cardinality
+      },
     }));
     setNodes(newNodes);
     setEdges(newEdges);
@@ -110,24 +117,48 @@ function App() {
       // Optionally, add visual feedback for the source node
     } else {
       const newRelationId = uuidv4();
-      const newRelation = {
-        objectId: newRelationId,
-        relationName: `Rel_${relationCreation.source}_${node.id}`,
-        type: 'OneMany', // Default type
-        relatedTables: [
-          { objectId: relationCreation.source },
-          { objectId: node.id },
-        ],
-        metadata: {},
-      };
+              const sourceTable = diagram.tables[relationCreation.source];
+        const targetTable = diagram.tables[node.id];
 
-      setDiagram(prev => ({
-        ...prev,
-        relations: {
-          ...prev.relations,
-          [newRelationId]: newRelation,
-        },
-      }));
+        // Find primary key of target table
+        const primaryKey = Object.keys(targetTable.columnas).find(colName => 
+          targetTable.columnas[colName].constraints?.some(c => c.type === 'PRIMARY KEY')
+        ) || 'id'; // fallback to 'id'
+
+        const fkColumnName = `${targetTable.tableName.toLowerCase()}_${primaryKey}`;
+
+        // Add FK column to source table
+        const newSourceTableColumns = {
+          ...sourceTable.columnas,
+          [fkColumnName]: {
+            dataType: targetTable.columnas[primaryKey]?.dataType || 'integer',
+            constraints: [{ type: 'FOREIGN KEY', references: targetTable.tableName, on: primaryKey }],
+            extra: ['Not Null']
+          }
+        };
+
+        const newSourceTable = { ...sourceTable, columnas: newSourceTableColumns };
+
+        const newRelation = {
+          objectId: newRelationId,
+          relationName: `Rel_${relationCreation.source}_${node.id}`,
+                    cardinality: { source: '1', target: 'N' }, // Default to One-to-Many
+          relatedTables: [{ objectId: relationCreation.source }, { objectId: node.id }],
+          fkColumn: fkColumnName,
+          metadata: {},
+        };
+
+        setDiagram(prev => ({
+          ...prev,
+          tables: { ...prev.tables, [relationCreation.source]: newSourceTable },
+          relations: {
+            ...prev.relations,
+            [newRelationId]: newRelation,
+          },
+        }));
+
+        setRelationCreation({ active: false, source: null });
+
 
       setRelationCreation({ active: false, source: null });
     }
@@ -223,7 +254,51 @@ function App() {
     });
   };
 
-    const onNodesDelete = useCallback((deletedNodes) => {
+      const requestTableDelete = (tableId) => {
+    setDeleteTableConfirmation({ isOpen: true, tableId });
+  };
+
+  const handleTableDelete = () => {
+    if (!deleteTableConfirmation.tableId) return;
+
+    setDiagram(prev => {
+      const newTables = { ...prev.tables };
+      const newRelations = { ...prev.relations };
+
+      // Delete the table
+      delete newTables[deleteTableConfirmation.tableId];
+
+      // Delete relations connected to the table
+      Object.keys(newRelations).forEach(relationId => {
+        const relation = newRelations[relationId];
+        if (relation.relatedTables[0].objectId === deleteTableConfirmation.tableId || relation.relatedTables[1].objectId === deleteTableConfirmation.tableId) {
+          // If a relation is deleted, also remove the FK column from the source table
+          const sourceTableId = relation.relatedTables[0].objectId;
+          if (newTables[sourceTableId] && relation.fkColumn) {
+            delete newTables[sourceTableId].columnas[relation.fkColumn];
+          }
+
+          delete newRelations[relationId];
+        }
+      });
+
+      return { ...prev, tables: newTables, relations: newRelations };
+    });
+
+    setDeleteTableConfirmation({ isOpen: false, tableId: null });
+  };
+
+    const handleCardinalityChange = (relationId, newCardinality) => {
+    setDiagram(prev => {
+      const newRelations = { ...prev.relations };
+      if (newRelations[relationId]) {
+        newRelations[relationId].cardinality = newCardinality;
+      }
+      return { ...prev, relations: newRelations };
+    });
+  };
+
+  const onNodesDelete = useCallback((deletedNodes) => {
     setDiagram(currentDiagram => {
       const newTables = { ...currentDiagram.tables };
       deletedNodes.forEach(node => {
@@ -295,14 +370,17 @@ function App() {
     const newTableId = uuidv4();
     const newTable = {
       objectId: newTableId,
-      tableName: `Tabla ${Object.keys(diagram.tables).length + 1}`,
-      columnas: {},
-      metadata: {
-        position: {
-          x: Math.random() * 400,
-          y: Math.random() * 400,
-        },
+      tableName: `Tabla_${Object.keys(diagram.tables).length + 1}`,
+      columnas: {
+        id: {
+          dataType: "integer",
+          extra: ["Not Null", "Auto Increment"],
+          constraints: [{ type: "PRIMARY KEY" }, { type: "UNIQUE" }]
+        }
       },
+      metadata: {
+        position: { x: Math.random() * 200 + 50, y: Math.random() * 200 + 50 }
+      }
     };
 
     setDiagram(prevDiagram => ({
@@ -349,12 +427,19 @@ function App() {
           onImport={handleImport}
         />
         <Controls />
-                <Background variant="dots" gap={12} size={1} />
-        <ConfirmModal 
+                        <Background variant="dots" gap={12} size={1} />
+        <CardinalityMarkers />
+                <ConfirmModal 
           isOpen={deleteConfirmation.isOpen}
           message="¿Estás seguro de que quieres eliminar esta relación?"
           onConfirm={handleEdgeDelete}
           onCancel={() => setDeleteConfirmation({ isOpen: false, edgeId: null })}
+        />
+        <ConfirmModal 
+          isOpen={deleteTableConfirmation.isOpen}
+          message="¿Estás seguro de que quieres eliminar esta tabla? Se eliminarán todas sus relaciones."
+          onConfirm={handleTableDelete}
+          onCancel={() => setDeleteTableConfirmation({ isOpen: false, tableId: null })}
         />
       </ReactFlow>
     </div>
