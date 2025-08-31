@@ -1,7 +1,6 @@
 import React, { useRef } from 'react';
 import { FaPlus, FaProjectDiagram, FaFolderOpen, FaDatabase, FaSave, FaGlobe } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
-import i18n from 'i18next';
 
 const toolbarStyle = {
   position: 'fixed',
@@ -76,9 +75,9 @@ export default function Toolbar({ onAddTable, onAddRelation, isRelationMode, onE
       <button 
         style={{
           ...buttonStyle,
-          backgroundColor: '#f0f7ff',
-          borderColor: '#b8d8ff',
-          color: '#0066cc'
+          backgroundColor: 'white',
+          borderColor: '#e0e0e0',
+          color: '#333'
         }} 
         onClick={onAddTable} 
         title={t('toolbar.newTable')}

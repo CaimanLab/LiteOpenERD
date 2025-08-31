@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 const modalOverlayStyle = {
   position: 'fixed',
@@ -34,6 +35,7 @@ const buttonStyle = {
 };
 
 export default function ConfirmModal({ isOpen, message, onConfirm, onCancel }) {
+  const { t } = useTranslation();
   if (!isOpen) {
     return null;
   }
@@ -43,8 +45,8 @@ export default function ConfirmModal({ isOpen, message, onConfirm, onCancel }) {
       <div style={modalContentStyle}>
         <p>{message}</p>
         <div style={buttonContainerStyle}>
-          <button style={{...buttonStyle, backgroundColor: '#ccc'}} onClick={onCancel}>Cancelar</button>
-          <button style={{...buttonStyle, backgroundColor: '#e53e3e', color: 'white'}} onClick={onConfirm}>Aceptar</button>
+          <button style={{...buttonStyle, backgroundColor: '#ccc'}} onClick={onCancel}>{t('common.cancel')}</button>
+          <button style={{...buttonStyle, backgroundColor: '#e53e3e', color: 'white'}} onClick={onConfirm}>{t('common.confirm')}</button>
         </div>
       </div>
     </div>

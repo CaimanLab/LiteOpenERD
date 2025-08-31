@@ -16,6 +16,7 @@
     "loading": "Loading...",
     "error": "Error",
     "success": "Success",
+    "selecting": "Selecting...",
     "notValidFile": "This is not a valid LiteOpenERD file or is an older version."
   },
   "toolbar": {
