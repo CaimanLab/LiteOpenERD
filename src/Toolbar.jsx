@@ -4,8 +4,8 @@ import { useTranslation } from 'react-i18next';
 import i18n from 'i18next';
 
 const toolbarStyle = {
-  position: 'absolute',
-  top: '15px',
+  position: 'fixed',
+  top: '65px',
   left: '15px',
   zIndex: 4,
   backgroundColor: 'white',

@@ -3,9 +3,11 @@ import ReactFlow, { useNodesState, useEdgesState, addEdge, Controls, Background 
 import 'reactflow/dist/style.css';
 import { v4 as uuidv4 } from 'uuid';
 import { useTranslation } from 'react-i18next';
+import { APP_VERSION } from './config';
 
 import './App.css';
 import Toolbar from './Toolbar';
+import Header from './Header';
 import TableNode from './TableNode';
 import CustomEdge from './CustomEdge';
 import { CardinalityMarkers } from './CardinalityMarkers';
@@ -438,8 +440,7 @@ function App() {
     });
   }, [setDiagram]);
 
-      // Current version of the application
-  const APP_VERSION = '1.0.0';
+      // Usando la versión desde el archivo de configuración
 
   const handleExport = (type = 'full') => {
     let exportData = {
@@ -644,20 +645,10 @@ function App() {
   };
 
   return (
-    <div style={{ width: workspaceSize.width, height: workspaceSize.height, overflow: 'auto' }}>
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onConnect={onConnect}
-        onNodesDelete={onNodesDelete}
-        onEdgesDelete={onEdgesDelete}
-        onNodeClick={onNodeClick}
-        nodeTypes={nodeTypes}
-        edgeTypes={edgeTypes}
-      >
-                <Toolbar 
+    <div className="app" style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+      <Header />
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', marginTop: '50px' }}>
+        <Toolbar 
           onAddTable={handleAddTable} 
           onAddRelation={toggleRelationMode} 
           onExport={handleExport} 
@@ -668,9 +659,25 @@ function App() {
           workspaceSize={workspaceSize}
           onWorkspaceSizeChange={updateWorkspaceSize}
         />
-        <Controls />
-        <Background variant="dots" gap={12} size={1} />
-      </ReactFlow>
+        <div style={{ flex: 1, position: 'relative' }}>
+          <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onConnect={onConnect}
+            onNodesDelete={onNodesDelete}
+            onEdgesDelete={onEdgesDelete}
+            onNodeClick={onNodeClick}
+            nodeTypes={nodeTypes}
+            edgeTypes={edgeTypes}
+            style={{ width: '100%', height: '100%' }}
+          >
+            <Controls />
+            <Background variant="dots" gap={12} size={1} />
+          </ReactFlow>
+        </div>
+      </div>
       <ConfirmModal 
         isOpen={deleteConfirmation.isOpen}
         message={t('relation.deleteConfirm')}
