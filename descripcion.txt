@@ -1,0 +1,115 @@
+Eres un experto desarrollador javascript, vamos a crear una aplicacion web maravillosa correra completamente en el navegador para crear diagrama de entidad-relación (ERD) para base de datos.
+- Teconolgias a usar: vite + ReactJS (javascript), reactflow (representacion grafica area de trabajo)
+- Descripcion: La aplicacion tendra un area de trabajo donde se ubicaran las tablas y relaciones y se podra arrastrar para poder cambiar, tendra una barra de herramientas para poder elegir crear, tablas y relaciones. La posicion de las tablas y relaciones, la magia esta por debajo que todo estara representado como json para poder guardarlo en localStorage del navegador y no usar servidor, las tablas y relaciones estaran representadas en formato json, ejemplo de reprecentacion de un area de trabajo:
+area de trabajo en json: 
+{
+    "tablas": {
+        "1": {
+            "objectId": "1",
+            "tableName": "Producto",
+            "columnas": {
+                "id": {
+                    "dataType": "integer",
+                    "extra": [
+                        "Not Null",
+                        "Auto Increment"
+                    ],
+                    "constraints": [
+                        {
+                            "type": "PRIMARY KEY"
+                        },
+                        {
+                            "type": "UNIQUE"
+                        }
+                    ]
+                },
+                "codigo": {
+                    "dataType": "varchar",
+                    "extra": [
+                        "Not Null"
+                    ]
+                },
+                "precio": {
+                    "dataType": "double",
+                    "extra": [
+                        "Not Null"
+                    ]
+                },
+                "clasificacion_id": {
+                    "dataType": "integer",
+                    "extra": [
+                        "Not Null"
+                    ]
+                }
+            },
+            "metadata": {
+                "width": "400",
+                "high": "300",
+                "position": "12,10"
+            }
+        },
+        "2": {
+            "objectId": "2",
+            "tableName": "Clasificacion",
+            "columnas": {
+                "id": {
+                    "dataType": "integer",
+                    "extra": [
+                        "Not Null",
+                        "Auto Increment"
+                    ],
+                    "constraints": [
+                        {
+                            "type": "PRIMARY KEY"
+                        },
+                        {
+                            "type": "UNIQUE"
+                        }
+                    ]
+                },
+                "nombre": {
+                    "dataType": "varchar",
+                    "extra": [
+                        "Not Null"
+                    ]
+                }
+            },
+            "metadata": {
+                "width": "400",
+                "high": "300",
+                "position": "500,10"
+            }
+        }
+    },
+    "relaciones": {
+        "1": {
+            "objectId": "1",
+            "relationName": "Producto_Clasificacion",
+            "type": "OneMany",
+            "relatedTables": [
+                {
+                    "objectId": "2",
+                    "tableName": "Clasificacion"
+                },
+                {
+                    "objectId": "1",
+                    "tableName": "Producto"
+                }
+            ],
+            "metadata": {
+                "width": "400",
+                "high": "300",
+                thickLine: "3",
+                "pointsLine": [
+                    "412,10",
+                    "500,10"
+                ]
+            }
+        }
+    }
+}
+
+- Funcionalidades: desde la barra de herramienta se podra crear tablas y relaciones, para el caso de la relacion se debe selecionar las dos tablas a relacionar
+
+
+Importante a la hora de representar graficamente las tablas y relaciones el objeto "metadata" es el que tendra la posicion(coordenadas: x,y), ancho y alto de las tablas, y para las relaciones tendra los puntos de la linea que sera una lista de coordenadas y ademas tendra el grosor de la linea 
