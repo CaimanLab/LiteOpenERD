@@ -39,15 +39,10 @@ const versionStyle = {
 
 const Header = () => {
   const { t } = useTranslation();
-  
+
   return (
     <header style={headerStyle}>
       <a href="/" style={logoStyle}>
-        <img 
-          src="/LiteOpenERD.ico" 
-          alt="LiteOpenERD Logo" 
-          style={logoImageStyle}
-        />
         <span>LiteOpenERD</span>
       </a>
       <div style={versionStyle}>
