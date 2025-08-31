@@ -132,7 +132,7 @@ function App() {
           ...sourceTable.columnas,
           [fkColumnName]: {
             dataType: targetTable.columnas[primaryKey]?.dataType || 'integer',
-            constraints: [{ type: 'FOREIGN KEY', references: targetTable.tableName, on: primaryKey }],
+                        constraints: [{ type: 'FOREIGN KEY', references: targetTable.tableName, on: primaryKey, relationObjectId: newRelationId }],
             extra: ['Not Null']
           }
         };
@@ -178,15 +178,28 @@ function App() {
     });
   };
 
-      const handleColumnNameChange = (tableId, oldName, newName) => {
+        const handleColumnNameChange = (tableId, oldName, newName) => {
     setDiagram(prev => {
       const newTables = { ...prev.tables };
+      const newRelations = { ...prev.relations };
       const table = newTables[tableId];
+
       if (table && table.columnas[oldName] && !table.columnas[newName]) {
-        table.columnas[newName] = table.columnas[oldName];
+        const columnData = { ...table.columnas[oldName] };
         delete table.columnas[oldName];
+        table.columnas[newName] = columnData;
+
+        // If the renamed column is a FK, update the relation
+        const fkConstraint = columnData.constraints?.find(c => c.type === 'FOREIGN KEY');
+        if (fkConstraint && fkConstraint.relationObjectId) {
+          const relation = newRelations[fkConstraint.relationObjectId];
+          if (relation) {
+            relation.fkColumn = newName;
+          }
+        }
       }
-      return { ...prev, tables: newTables };
+
+      return { ...prev, tables: newTables, relations: newRelations };
     });
   };
 
@@ -201,14 +214,25 @@ function App() {
     });
   };
 
-    const handleColumnDelete = (tableId, columnName) => {
+      const handleColumnDelete = (tableId, columnName) => {
     setDiagram(prev => {
       const newTables = { ...prev.tables };
+      const newRelations = { ...prev.relations };
       const table = newTables[tableId];
+
       if (table && table.columnas[columnName]) {
+        // Check if the column is a foreign key
+        const fkConstraint = table.columnas[columnName].constraints?.find(c => c.type === 'FOREIGN KEY');
+        if (fkConstraint && fkConstraint.relationObjectId) {
+          // Delete the associated relation
+          delete newRelations[fkConstraint.relationObjectId];
+        }
+
+        // Delete the column
         delete table.columnas[columnName];
       }
-      return { ...prev, tables: newTables };
+
+      return { ...prev, tables: newTables, relations: newRelations };
     });
   };
 
@@ -312,14 +336,30 @@ function App() {
     setDeleteConfirmation({ isOpen: true, edgeId });
   };
 
-  const handleEdgeDelete = () => {
+    const handleEdgeDelete = () => {
     if (!deleteConfirmation.edgeId) return;
 
     setDiagram(prev => {
       const newRelations = { ...prev.relations };
-            delete newRelations[deleteConfirmation.edgeId];
-            return { ...prev, relations: newRelations };
+      const newTables = { ...prev.tables };
+      const relationToDelete = newRelations[deleteConfirmation.edgeId];
+
+      if (relationToDelete) {
+        // Find the source table and the FK column to delete
+        const sourceTableId = relationToDelete.relatedTables[0].objectId;
+        const fkColumn = relationToDelete.fkColumn;
+
+        if (newTables[sourceTableId] && newTables[sourceTableId].columnas[fkColumn]) {
+          delete newTables[sourceTableId].columnas[fkColumn];
+        }
+
+        // Delete the relation
+        delete newRelations[deleteConfirmation.edgeId];
+      }
+
+      return { ...prev, relations: newRelations, tables: newTables };
     });
+
     setDeleteConfirmation({ isOpen: false, edgeId: null });
   };
 
