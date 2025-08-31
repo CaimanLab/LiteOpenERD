@@ -1,0 +1,59 @@
+{
+  "common": {
+    "save": "Guardar",
+    "load": "Cargar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "confirm": "Confirmar",
+    "back": "Atrás",
+    "next": "Siguiente",
+    "submit": "Enviar",
+    "edit": "Editar",
+    "create": "Crear",
+    "close": "Cerrar",
+    "select": "Seleccionar",
+    "search": "Buscar",
+    "loading": "Cargando...",
+    "error": "Error",
+    "success": "Éxito",
+    "selecting": "Seleccionando..."
+  },
+  "toolbar": {
+    "newTable": "Nueva Tabla",
+    "addRelation": "Añadir Relación",
+    "export": "Exportar",
+    "import": "Importar",
+    "exportSQL": "Exportar SQL",
+    "workspaceSize": "Tamaño del Área",
+    "width": "Ancho",
+    "height": "Alto"
+  },
+  "table": {
+    "tableName": "Nombre de la Tabla",
+    "addColumn": "Añadir Columna",
+    "columnName": "Nombre de Columna",
+    "dataType": "Tipo de Dato",
+    "primaryKey": "Clave Primaria",
+    "notNull": "No Nulo",
+    "defaultValue": "Valor por Defecto",
+    "constraints": "Restricciones",
+    "foreignKey": "Clave Foránea",
+    "unique": "Único"
+  },
+  "relation": {
+    "createRelation": "Crear Relación",
+    "selectTables": "Seleccionar Tablas",
+    "relationType": "Tipo de Relación",
+    "oneToOne": "Uno a Uno",
+    "oneToMany": "Uno a Muchos",
+    "manyToMany": "Muchos a Muchos",
+    "selectColumns": "Seleccionar Columnas"
+  },
+  "messages": {
+    "deleteConfirm": "¿Estás seguro de que quieres eliminar este elemento?",
+    "unsavedChanges": "Tienes cambios sin guardar. ¿Seguro que quieres salir?",
+    "importSuccess": "Diagrama importado correctamente",
+    "exportSuccess": "Diagrama exportado correctamente",
+    "errorOccurred": "Ocurrió un error"
+  }
+}

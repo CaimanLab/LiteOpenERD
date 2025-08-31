@@ -1,0 +1,58 @@
+{
+  "common": {
+    "save": "Save",
+    "load": "Load",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "submit": "Submit",
+    "edit": "Edit",
+    "create": "Create",
+    "close": "Close",
+    "select": "Select",
+    "search": "Search",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success"
+  },
+  "toolbar": {
+    "newTable": "New Table",
+    "addRelation": "Add Relation",
+    "export": "Export",
+    "import": "Import",
+    "exportSQL": "Export SQL",
+    "workspaceSize": "Workspace Size",
+    "width": "Width",
+    "height": "Height"
+  },
+  "table": {
+    "tableName": "Table Name",
+    "addColumn": "Add Column",
+    "columnName": "Column Name",
+    "dataType": "Data Type",
+    "primaryKey": "Primary Key",
+    "notNull": "Not Null",
+    "defaultValue": "Default Value",
+    "constraints": "Constraints",
+    "foreignKey": "Foreign Key",
+    "unique": "Unique"
+  },
+  "relation": {
+    "createRelation": "Create Relation",
+    "selectTables": "Select Tables",
+    "relationType": "Relation Type",
+    "oneToOne": "One to One",
+    "oneToMany": "One to Many",
+    "manyToMany": "Many to Many",
+    "selectColumns": "Select Columns"
+  },
+  "messages": {
+    "deleteConfirm": "Are you sure you want to delete this item?",
+    "unsavedChanges": "You have unsaved changes. Are you sure you want to leave?",
+    "importSuccess": "Successfully imported diagram",
+    "exportSuccess": "Successfully exported diagram",
+    "errorOccurred": "An error occurred"
+  }
+}

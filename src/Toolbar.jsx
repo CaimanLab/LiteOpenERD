@@ -1,5 +1,6 @@
 import React, { useRef } from 'react';
-import { FaPlus, FaProjectDiagram, FaFolderOpen, FaDatabase, FaSave, FaArrowsAltH, FaArrowsAltV } from 'react-icons/fa';
+import { FaPlus, FaProjectDiagram, FaFolderOpen, FaDatabase, FaSave } from 'react-icons/fa';
+import { useTranslation } from 'react-i18next';
 
 const toolbarStyle = {
   position: 'absolute',
@@ -42,16 +43,10 @@ const dividerStyle = {
   margin: '0 4px'
 };
 
-const buttonHoverStyle = {
-  ...buttonStyle,
-  '&:hover': {
-    backgroundColor: '#f5f5f5',
-    borderColor: '#999',
-    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-  }
-};
+// Button hover styles are now handled inline
 
 export default function Toolbar({ onAddTable, onAddRelation, isRelationMode, onExport, onImport, onExportSql, fileInputRef, workspaceSize, onWorkspaceSizeChange }) {
+  const { t } = useTranslation();
   const handleImportClick = () => {
     if (fileInputRef.current) {
       fileInputRef.current.click();
@@ -69,9 +64,9 @@ export default function Toolbar({ onAddTable, onAddRelation, isRelationMode, onE
           color: '#0066cc'
         }} 
         onClick={onAddTable} 
-        title="Crear Tabla"
+        title={t('toolbar.newTable')}
       >
-        <FaPlus style={{ fontSize: '14px' }} /> Tabla
+        <FaPlus style={{ fontSize: '14px' }} /> {t('toolbar.newTable')}
       </button>
       
       <button 
@@ -82,10 +77,10 @@ export default function Toolbar({ onAddTable, onAddRelation, isRelationMode, onE
           color: isRelationMode ? '#0050b3' : '#333'
         }}
         onClick={onAddRelation}
-        title="Crear Relación"
+        title={t('toolbar.addRelation')}
       >
         <FaProjectDiagram style={{ fontSize: '14px' }} /> 
-        {isRelationMode ? 'Seleccionando...' : 'Relación'}
+        {isRelationMode ? t('common.selecting') : t('toolbar.addRelation')}
       </button>
 
       <div style={dividerStyle} />
@@ -99,9 +94,9 @@ export default function Toolbar({ onAddTable, onAddRelation, isRelationMode, onE
           color: '#237804'
         }} 
         onClick={handleImportClick} 
-        title="Abrir diagrama guardado"
+        title={t('toolbar.import')}
       >
-        <FaFolderOpen style={{ fontSize: '14px' }} /> Abrir
+        <FaFolderOpen style={{ fontSize: '14px' }} /> {t('toolbar.import')}
       </button>
       
       <button 
@@ -112,9 +107,9 @@ export default function Toolbar({ onAddTable, onAddRelation, isRelationMode, onE
           color: '#237804'
         }} 
         onClick={() => onExport('full')}
-        title="Guardar diagrama"
+        title={t('toolbar.export')}
       >
-        <FaSave style={{ fontSize: '14px' }} /> Guardar
+        <FaSave style={{ fontSize: '14px' }} /> {t('toolbar.export')}
       </button>
 
       <div style={dividerStyle} />
@@ -128,9 +123,9 @@ export default function Toolbar({ onAddTable, onAddRelation, isRelationMode, onE
           color: '#ad4e00'
         }} 
         onClick={onExportSql}
-        title="Exportar a SQL"
+        title={t('toolbar.exportSQL')}
       >
-        <FaDatabase style={{ fontSize: '14px' }} /> Exportar SQL
+        <FaDatabase style={{ fontSize: '14px' }} /> {t('toolbar.exportSQL')}
       </button>
 
       <input
@@ -145,7 +140,6 @@ export default function Toolbar({ onAddTable, onAddRelation, isRelationMode, onE
 
       {/* Workspace Size Controls */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-        <FaArrowsAltH style={{ color: '#666' }} />
         <input
           type="text"
           value={workspaceSize.width}
@@ -157,12 +151,11 @@ export default function Toolbar({ onAddTable, onAddRelation, isRelationMode, onE
             borderRadius: '4px',
             fontSize: '12px'
           }}
-          title="Ancho del área de trabajo (ej: 100%, 1200px, 80vw)"
+          title={`${t('toolbar.width')} (100%, 1200px, 80vw)`}
         />
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-        <FaArrowsAltV style={{ color: '#666' }} />
         <input
           type="text"
           value={workspaceSize.height}
@@ -174,7 +167,7 @@ export default function Toolbar({ onAddTable, onAddRelation, isRelationMode, onE
             borderRadius: '4px',
             fontSize: '12px'
           }}
-          title="Alto del área de trabajo (ej: 100%, 800px, 90vh)"
+          title={`${t('toolbar.height')} (100%, 800px, 90vh)`}
         />
       </div>
     </div>
