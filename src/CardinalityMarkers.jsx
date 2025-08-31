@@ -27,14 +27,14 @@ const CrowFootOne = () => (
 );
 
 export const getMarkerEnd = (cardinality) => {
-  if (cardinality === 'N' || cardinality === 'M') {
+  if (cardinality === 'N') {
     return 'url(#crow-many)';
   }
   return 'url(#crow-one)';
 };
 
 export const getMarkerStart = (cardinality) => {
-  if (cardinality === 'N' || cardinality === 'M') {
+  if (cardinality === 'N') {
     return 'url(#crow-many)';
   }
   return 'url(#crow-one)';
@@ -50,15 +50,15 @@ export const CardinalityMarkers = () => (
 );
 
 export const handleCardinalityChange = (id, currentCardinality, onCardinalityChange) => {
-  let next;
   const current = `${currentCardinality.source}:${currentCardinality.target}`;
+  let next;
 
   if (current === '1:1') {
     next = { source: '1', target: 'N' };
-  } else if (current === '1:N') {
-    next = { source: 'N', target: 'M' };
   } else {
+    // Default to 1:1 for any other case (e.g., '1:N')
     next = { source: '1', target: '1' };
   }
+
   onCardinalityChange(id, next);
 };
