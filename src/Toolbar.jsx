@@ -233,7 +233,10 @@ export default function Toolbar({ onAddTable, onAddRelation, isRelationMode, onE
                 backgroundColor: '#f0f5ff'
               }
             }}
-            onClick={() => i18n.changeLanguage('es')}
+            onClick={() => {
+              i18n.changeLanguage('es');
+              setShowLanguageMenu(false);
+            }}
           >
             🇪🇸 Español
           </div>
@@ -248,7 +251,10 @@ export default function Toolbar({ onAddTable, onAddRelation, isRelationMode, onE
                 backgroundColor: '#f0f5ff'
               }
             }}
-            onClick={() => i18n.changeLanguage('en')}
+            onClick={() => {
+              i18n.changeLanguage('en');
+              setShowLanguageMenu(false);
+            }}
           >
             🇬🇧 English
           </div>
