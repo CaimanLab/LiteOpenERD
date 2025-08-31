@@ -404,28 +404,57 @@ function App() {
     });
   }, [setDiagram]);
 
-      const handleExport = (type = 'full') => {
-    let exportData = diagram;
-    if (type === 'simple') {
-      exportData = JSON.parse(JSON.stringify(diagram)); // Deep copy
+      // Current version of the application
+  const APP_VERSION = '1.0.0';
 
-      // Remove metadata from tables and their columns
-      Object.values(exportData.tables).forEach(table => {
-        delete table.metadata; // Remove table position metadata
-        Object.values(table.columnas).forEach(column => {
+  const handleExport = (type = 'full') => {
+    let exportData = {
+      ...diagram,
+      metadata: {
+        ...diagram.metadata,
+        versionLiteOpenERD: APP_VERSION,
+        exportedAt: new Date().toISOString()
+      }
+    };
+    if (type === 'simple') {
+      // Create a deep copy of the diagram without internal metadata
+      exportData = {
+        tables: {},
+        relations: {},
+        metadata: {
+          versionLiteOpenERD: APP_VERSION,
+          exportedAt: new Date().toISOString()
+        }
+      };
+
+      // Process tables (copy only necessary data)
+      Object.entries(diagram.tables).forEach(([id, table]) => {
+        exportData.tables[id] = {
+          ...table,
+          metadata: undefined, // Remove position metadata
+          columnas: { ...table.columnas }
+        };
+
+        // Clean up column data
+        Object.values(exportData.tables[id].columnas).forEach(column => {
           if (column.constraints) {
-            column.constraints.forEach(c => {
-              if (c.metadata) {
-                delete c.metadata; // Remove FK relation metadata
-              }
-            });
+            column.constraints = column.constraints.map(({ type, references, on }) => ({
+              type,
+              ...(references && on ? { references, on } : {})
+            }));
           }
         });
       });
 
-      // Remove metadata from relations
-      Object.values(exportData.relations).forEach(relation => {
-        delete relation.metadata;
+      // Process relations (copy only necessary data)
+      Object.entries(diagram.relations).forEach(([id, relation]) => {
+        exportData.relations[id] = {
+          objectId: relation.objectId,
+          relationName: relation.relationName,
+          cardinality: relation.cardinality,
+          relatedTables: relation.relatedTables,
+          fkColumn: relation.fkColumn
+        };
       });
     }
 
@@ -494,19 +523,43 @@ function App() {
 
   const handleImport = (event) => {
     const file = event.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        try {
-          const importedDiagram = JSON.parse(e.target.result);
-          setDiagram(importedDiagram);
-        } catch (error) {
-          console.error("Error parsing JSON file:", error);
-          alert("Error: El archivo no es un JSON válido.");
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const importedData = JSON.parse(e.target.result);
+        
+        // Check if it's a valid LiteOpenERD file
+        if (!importedData.metadata || !importedData.metadata.versionLiteOpenERD) {
+          throw new Error("Este no es un archivo de LiteOpenERD válido.");
         }
-      };
-      reader.readAsText(file);
-    }
+
+        // Check version compatibility (you can add more complex version checking logic here)
+        const fileVersion = importedData.metadata.versionLiteOpenERD;
+        if (fileVersion !== APP_VERSION) {
+          if (!confirm(`Este archivo fue creado con la versión ${fileVersion} de LiteOpenERD.\n\n` +
+                      `Estás usando la versión ${APP_VERSION}.\n\n` +
+                      `¿Deseas intentar importarlo de todos modos?`)) {
+            return;
+          }
+        }
+
+        // If we get here, the file is valid or the user wants to proceed
+        const { metadata, ...diagramData } = importedData;
+        setDiagram(diagramData);
+        
+      } catch (error) {
+        console.error("Error al importar el archivo:", error);
+        alert(`Error al importar el archivo: ${error.message || 'Formato de archivo no válido'}`);
+      }
+    };
+    
+    reader.onerror = () => {
+      alert("Error al leer el archivo. Asegúrate de que no esté dañado.");
+    };
+    
+    reader.readAsText(file);
   };
 
   return (
