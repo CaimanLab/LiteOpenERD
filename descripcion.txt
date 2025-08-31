@@ -99,7 +99,6 @@ area de trabajo en json:
             "metadata": {
                 "width": "400",
                 "high": "300",
-                thickLine: "3",
                 "pointsLine": [
                     "412,10",
                     "500,10"

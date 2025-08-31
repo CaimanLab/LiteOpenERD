@@ -61,6 +61,7 @@ function App() {
           onColumnNameChange: handleColumnNameChange,
           onColumnTypeChange: handleColumnTypeChange,
           onColumnDelete: handleColumnDelete,
+          onColumnPropertyChange: handleColumnPropertyChange,
         columns: table.columnas
       },
     }));
@@ -176,6 +177,32 @@ function App() {
       if (table && table.columnas[columnName]) {
         delete table.columnas[columnName];
       }
+      return { ...prev, tables: newTables };
+    });
+  };
+
+    const handleColumnPropertyChange = (tableId, columnName, property, value) => {
+    setDiagram(prev => {
+      const newTables = { ...prev.tables };
+      const column = newTables[tableId]?.columnas[columnName];
+      if (!column) return prev;
+
+      const constraints = new Set(column.constraints?.map(c => c.type) || []);
+      const extras = new Set(column.extra || []);
+
+      switch (property) {
+        case 'PRIMARY KEY':
+        case 'UNIQUE':
+          value ? constraints.add(property) : constraints.delete(property);
+          column.constraints = Array.from(constraints).map(type => ({ type }));
+          break;
+        case 'Not Null':
+        case 'Auto Increment':
+          value ? extras.add(property) : extras.delete(property);
+          column.extra = Array.from(extras);
+          break;
+      }
+
       return { ...prev, tables: newTables };
     });
   };

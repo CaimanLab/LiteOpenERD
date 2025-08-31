@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Handle, Position } from 'reactflow';
-import { FaPlus, FaTrash } from 'react-icons/fa';
+import { FaPlus, FaTrash, FaKey } from 'react-icons/fa';
 
 const tableNodeStyle = {
   backgroundColor: '#fff',
@@ -31,8 +31,9 @@ const addButtonStyle = {
 
 const DATA_TYPES = ['varchar', 'integer', 'double', 'datetime', 'date'];
 
-function Column({ name, type, tableId, onNameChange, onTypeChange, onDelete, isLast }) {
+function Column({ name, type, tableId, onNameChange, onTypeChange, onDelete, onColumnPropertyChange, isLast, columnData }) {
   const [isEditing, setIsEditing] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [currentName, setCurrentName] = useState(name);
 
   const handleNameChange = (e) => {
@@ -61,7 +62,8 @@ function Column({ name, type, tableId, onNameChange, onTypeChange, onDelete, isL
     alignItems: 'center',
     padding: '4px 10px',
     borderBottom: isLast ? 'none' : '1px solid #eee',
-    fontSize: '14px'
+    fontSize: '14px',
+    cursor: 'pointer'
   }
 
   const deleteButtonStyle = {
@@ -74,30 +76,72 @@ function Column({ name, type, tableId, onNameChange, onTypeChange, onDelete, isL
     padding: '0 0 0 5px'
   }
 
+  const detailsStyle = {
+    backgroundColor: '#f9f9f9',
+    padding: '8px 10px',
+    fontSize: '12px',
+    borderBottom: isLast ? 'none' : '1px solid #eee',
+  };
+
+  const labelStyle = { 
+    display: 'flex', 
+    alignItems: 'center', 
+    gap: '8px', 
+    cursor: 'pointer' 
+  };
+
+  const isPrimaryKey = columnData?.constraints?.some(c => c.type === 'PRIMARY KEY');
+  const isUnique = columnData?.constraints?.some(c => c.type === 'UNIQUE');
+  const isNotNull = columnData?.extra?.includes('Not Null');
+  const isAutoIncrement = columnData?.extra?.includes('Auto Increment');
+
   return (
-    <div style={columnStyle}>
-      {isEditing ? (
-        <input 
-          type="text" 
-          value={currentName} 
-          onChange={handleNameChange}
-          onKeyDown={handleKeyDown}
-          onBlur={handleBlur}
-          autoFocus
-          style={{ width: '100px' }}
-        />
-      ) : (
-        <span onDoubleClick={() => setIsEditing(true)} title="Double click to edit">{name}</span>
-      )}
-      <div style={{ display: 'flex', alignItems: 'center' }}>
-        <select value={type} onChange={(e) => onTypeChange(tableId, name, e.target.value)} style={{ marginLeft: '10px', border: '1px solid #ccc', borderRadius: '3px' }}>
-          {DATA_TYPES.map(dt => <option key={dt} value={dt}>{dt}</option>)}
-        </select>
-        <button onClick={() => onDelete(tableId, name)} style={deleteButtonStyle} title="Delete column">
-          <FaTrash />
-        </button>
+    <>
+      <div style={columnStyle} onClick={() => setIsExpanded(!isExpanded)}>
+        {isEditing ? (
+          <input 
+            type="text" 
+            value={currentName} 
+            onChange={handleNameChange}
+            onKeyDown={handleKeyDown}
+            onBlur={handleBlur}
+            onClick={(e) => e.stopPropagation()} // Prevent closing the details view
+            autoFocus
+            style={{ width: '100px' }}
+          />
+        ) : (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+            {isPrimaryKey && <FaKey title="Primary Key" style={{ color: '#f0ad4e' }}/>}
+            <span onDoubleClick={(e) => { e.stopPropagation(); setIsEditing(true); }} title="Double click to edit">{name}</span>
+          </div>
+        )}
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <select 
+            value={type} 
+            onChange={(e) => onTypeChange(tableId, name, e.target.value)} 
+            onClick={(e) => e.stopPropagation()} // Prevent closing the details view
+            style={{ marginLeft: '10px', border: '1px solid #ccc', borderRadius: '3px' }}
+          >
+            {DATA_TYPES.map(dt => <option key={dt} value={dt}>{dt}</option>)}
+          </select>
+          <button 
+            onClick={(e) => { e.stopPropagation(); onDelete(tableId, name); }} 
+            style={deleteButtonStyle} 
+            title="Delete column"
+          >
+            <FaTrash />
+          </button>
+        </div>
       </div>
-    </div>
+      {isExpanded && (
+        <div style={detailsStyle} onClick={(e) => e.stopPropagation()}>
+          <label style={labelStyle}><input type="checkbox" checked={isNotNull} onChange={(e) => onColumnPropertyChange(tableId, name, 'Not Null', e.target.checked)} /> Not Null</label>
+          <label style={labelStyle}><input type="checkbox" checked={isAutoIncrement} onChange={(e) => onColumnPropertyChange(tableId, name, 'Auto Increment', e.target.checked)} /> Auto Increment</label>
+          <label style={labelStyle}><input type="checkbox" checked={isPrimaryKey} onChange={(e) => onColumnPropertyChange(tableId, name, 'PRIMARY KEY', e.target.checked)} /> PRIMARY KEY</label>
+          <label style={labelStyle}><input type="checkbox" checked={isUnique} onChange={(e) => onColumnPropertyChange(tableId, name, 'UNIQUE', e.target.checked)} /> UNIQUE</label>
+        </div>
+      )}
+    </>
   );
 }
 
@@ -145,12 +189,14 @@ export default function TableNode({ data }) {
         {Object.entries(data.columns || {}).map(([name, col], index, arr) => (
           <Column 
             key={name} 
-            name={name} 
+                        name={name} 
             type={col.dataType} 
             tableId={data.id} 
+            columnData={col}
             onNameChange={data.onColumnNameChange} 
             onTypeChange={data.onColumnTypeChange}
             onDelete={data.onColumnDelete}
+            onColumnPropertyChange={data.onColumnPropertyChange}
             isLast={index === arr.length - 1}
           />
         ))}
