@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import ReactFlow, { useNodesState, useEdgesState, addEdge, Controls, Background } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { v4 as uuidv4 } from 'uuid';
@@ -521,45 +521,52 @@ function App() {
     document.body.removeChild(link);
   };
 
-  const handleImport = (event) => {
+  const fileInputRef = useRef(null);
+
+  const handleImport = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const importedData = JSON.parse(e.target.result);
-        
-        // Check if it's a valid LiteOpenERD file
-        if (!importedData.metadata || !importedData.metadata.versionLiteOpenERD) {
-          throw new Error("Este no es un archivo de LiteOpenERD válido.");
-        }
+    try {
+      const fileContent = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target.result);
+        reader.onerror = (error) => reject(error);
+        reader.readAsText(file);
+      });
 
-        // Check version compatibility (you can add more complex version checking logic here)
-        const fileVersion = importedData.metadata.versionLiteOpenERD;
-        if (fileVersion !== APP_VERSION) {
-          if (!confirm(`Este archivo fue creado con la versión ${fileVersion} de LiteOpenERD.\n\n` +
-                      `Estás usando la versión ${APP_VERSION}.\n\n` +
-                      `¿Deseas intentar importarlo de todos modos?`)) {
-            return;
-          }
-        }
+      const importedData = JSON.parse(fileContent);
+      
+      // Check if it's a valid LiteOpenERD file
+      if (!importedData.metadata || !importedData.metadata.versionLiteOpenERD) {
+        throw new Error("Este no es un archivo de LiteOpenERD válido.");
+      }
 
-        // If we get here, the file is valid or the user wants to proceed
-        const { metadata, ...diagramData } = importedData;
-        setDiagram(diagramData);
-        
-      } catch (error) {
-        console.error("Error al importar el archivo:", error);
+      // Check version compatibility
+      const fileVersion = importedData.metadata.versionLiteOpenERD;
+      if (fileVersion !== APP_VERSION) {
+        if (!window.confirm(`Este archivo fue creado con la versión ${fileVersion} de LiteOpenERD.\n\n` +
+                          `Estás usando la versión ${APP_VERSION}.\n\n` +
+                          `¿Deseas intentar importarlo de todos modos?`)) {
+          throw new Error('Importación cancelada por el usuario');
+        }
+      }
+
+      // If we get here, the file is valid or the user wants to proceed
+      const { metadata, ...diagramData } = importedData;
+      setDiagram(diagramData);
+      
+    } catch (error) {
+      console.error("Error al importar el archivo:", error);
+      if (error.message !== 'Importación cancelada por el usuario') {
         alert(`Error al importar el archivo: ${error.message || 'Formato de archivo no válido'}`);
       }
-    };
-    
-    reader.onerror = () => {
-      alert("Error al leer el archivo. Asegúrate de que no esté dañado.");
-    };
-    
-    reader.readAsText(file);
+    } finally {
+      // Reset the file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
   };
 
   return (
@@ -576,7 +583,15 @@ function App() {
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
       >
-                <Toolbar onAddTable={handleAddTable} onAddRelation={toggleRelationMode} onExport={handleExport} onImport={handleImport} onExportSql={handleExportSql} isRelationMode={relationCreation.active} />
+                <Toolbar 
+          onAddTable={handleAddTable} 
+          onAddRelation={toggleRelationMode} 
+          onExport={handleExport} 
+          onImport={handleImport} 
+          onExportSql={handleExportSql} 
+          isRelationMode={relationCreation.active}
+          fileInputRef={fileInputRef}
+        />
         <Controls />
         <Background variant="dots" gap={12} size={1} />
       </ReactFlow>

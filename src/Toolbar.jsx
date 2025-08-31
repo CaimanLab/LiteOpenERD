@@ -51,11 +51,11 @@ const buttonHoverStyle = {
   }
 };
 
-export default function Toolbar({ onAddTable, onAddRelation, isRelationMode, onExport, onImport, onExportSql }) {
-  const importInputRef = React.useRef(null);
-
+export default function Toolbar({ onAddTable, onAddRelation, isRelationMode, onExport, onImport, onExportSql, fileInputRef }) {
   const handleImportClick = () => {
-    importInputRef.current.click();
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
   };
 
   return (
@@ -133,7 +133,13 @@ export default function Toolbar({ onAddTable, onAddRelation, isRelationMode, onE
         <FaDatabase style={{ fontSize: '14px' }} /> Exportar SQL
       </button>
 
-      <input type="file" ref={importInputRef} style={{ display: 'none' }} onChange={onImport} accept=".json" />
+      <input
+        type="file"
+        ref={fileInputRef}
+        style={{ display: 'none' }}
+        accept=".json"
+        onChange={onImport}
+      />
     </div>
   );
 }
