@@ -22,12 +22,41 @@ const loadState = () => {
   try {
     const serializedState = localStorage.getItem('diagramState');
     if (serializedState === null) {
-      return initialDiagram;
+      return {
+        ...initialDiagram,
+        metadata: {
+          ...initialDiagram.metadata,
+          workspaceSize: {
+            width: '100vw',
+            height: '100vh'
+          }
+        }
+      };
     }
-    return JSON.parse(serializedState);
+    const parsed = JSON.parse(serializedState);
+    // Ensure backward compatibility
+    if (!parsed.metadata) {
+      parsed.metadata = {};
+    }
+    if (!parsed.metadata.workspaceSize) {
+      parsed.metadata.workspaceSize = {
+        width: '100vw',
+        height: '100vh'
+      };
+    }
+    return parsed;
   } catch (err) {
     console.error("Could not load state", err);
-    return initialDiagram;
+    return {
+      ...initialDiagram,
+      metadata: {
+        ...initialDiagram.metadata,
+        workspaceSize: {
+          width: '100vw',
+          height: '100vh'
+        }
+      }
+    };
   }
 };
 
@@ -38,6 +67,9 @@ function App() {
   const [deleteTableConfirmation, setDeleteTableConfirmation] = useState({ isOpen: false, tableId: null });
   const [nodes, setNodes, onNodesChangeInternal] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [workspaceSize, setWorkspaceSize] = useState(
+    diagram.metadata?.workspaceSize || { width: '100vw', height: '100vh' }
+  );
 
   // Save state to localStorage whenever diagram changes
   useEffect(() => {
@@ -537,24 +569,41 @@ function App() {
 
       const importedData = JSON.parse(fileContent);
       
-      // Check if it's a valid LiteOpenERD file
+      // Verificar si es un archivo LiteOpenERD válido
       if (!importedData.metadata || !importedData.metadata.versionLiteOpenERD) {
         throw new Error("Este no es un archivo de LiteOpenERD válido.");
       }
 
-      // Check version compatibility
+      // Verificar compatibilidad de versión
       const fileVersion = importedData.metadata.versionLiteOpenERD;
       if (fileVersion !== APP_VERSION) {
         if (!window.confirm(`Este archivo fue creado con la versión ${fileVersion} de LiteOpenERD.\n\n` +
                           `Estás usando la versión ${APP_VERSION}.\n\n` +
-                          `¿Deseas intentar importarlo de todos modos?`)) {
+                          `¿Deseas intentar importarlo de todos modos?\n\n` +
+                          `Nota: Algunas características podrían no funcionar correctamente.`)) {
           throw new Error('Importación cancelada por el usuario');
         }
       }
 
-      // If we get here, the file is valid or the user wants to proceed
-      const { metadata, ...diagramData } = importedData;
-      setDiagram(diagramData);
+      // Si llegamos aquí, el archivo es válido o el usuario quiere continuar
+      // Extraer los datos del diagrama y los metadatos
+      const { metadata = {}, ...diagramData } = importedData;
+      
+      // Asegurarse de que el workspaceSize del archivo importado tenga prioridad
+      const newWorkspaceSize = metadata.workspaceSize || { width: '100vw', height: '100vh' };
+      
+      // Actualizar el estado del tamaño del área de trabajo
+      setWorkspaceSize(newWorkspaceSize);
+      
+      // Actualizar el diagrama con los datos importados y metadatos actualizados
+      setDiagram({
+        ...diagramData,
+        metadata: {
+          ...metadata,
+          workspaceSize: newWorkspaceSize,
+          versionLiteOpenERD: APP_VERSION
+        }
+      });
       
     } catch (error) {
       console.error("Error al importar el archivo:", error);
@@ -569,8 +618,31 @@ function App() {
     }
   };
 
+  const updateWorkspaceSize = (dimension, value) => {
+    const newValue = value.endsWith('%') || value.endsWith('px') || value.endsWith('vw') || value.endsWith('vh') 
+      ? value 
+      : value + 'px';
+      
+    setWorkspaceSize(prev => ({
+      ...prev,
+      [dimension]: newValue
+    }));
+
+    // Update in diagram metadata
+    setDiagram(prev => ({
+      ...prev,
+      metadata: {
+        ...prev.metadata,
+        workspaceSize: {
+          ...(prev.metadata?.workspaceSize || { width: '100vw', height: '100vh' }),
+          [dimension]: newValue
+        }
+      }
+    }));
+  };
+
   return (
-    <div style={{ width: '100vw', height: '100vh' }}>
+    <div style={{ width: workspaceSize.width, height: workspaceSize.height, overflow: 'auto' }}>
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -591,6 +663,8 @@ function App() {
           onExportSql={handleExportSql} 
           isRelationMode={relationCreation.active}
           fileInputRef={fileInputRef}
+          workspaceSize={workspaceSize}
+          onWorkspaceSizeChange={updateWorkspaceSize}
         />
         <Controls />
         <Background variant="dots" gap={12} size={1} />

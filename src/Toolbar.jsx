@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { FaPlus, FaProjectDiagram, FaFolderOpen, FaDatabase, FaSave } from 'react-icons/fa';
+import { FaPlus, FaProjectDiagram, FaFolderOpen, FaDatabase, FaSave, FaArrowsAltH, FaArrowsAltV } from 'react-icons/fa';
 
 const toolbarStyle = {
   position: 'absolute',
@@ -51,7 +51,7 @@ const buttonHoverStyle = {
   }
 };
 
-export default function Toolbar({ onAddTable, onAddRelation, isRelationMode, onExport, onImport, onExportSql, fileInputRef }) {
+export default function Toolbar({ onAddTable, onAddRelation, isRelationMode, onExport, onImport, onExportSql, fileInputRef, workspaceSize, onWorkspaceSizeChange }) {
   const handleImportClick = () => {
     if (fileInputRef.current) {
       fileInputRef.current.click();
@@ -140,6 +140,43 @@ export default function Toolbar({ onAddTable, onAddRelation, isRelationMode, onE
         accept=".json"
         onChange={onImport}
       />
+
+      <div style={dividerStyle} />
+
+      {/* Workspace Size Controls */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+        <FaArrowsAltH style={{ color: '#666' }} />
+        <input
+          type="text"
+          value={workspaceSize.width}
+          onChange={(e) => onWorkspaceSizeChange('width', e.target.value)}
+          style={{
+            width: '60px',
+            padding: '4px',
+            border: '1px solid #ddd',
+            borderRadius: '4px',
+            fontSize: '12px'
+          }}
+          title="Ancho del área de trabajo (ej: 100%, 1200px, 80vw)"
+        />
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+        <FaArrowsAltV style={{ color: '#666' }} />
+        <input
+          type="text"
+          value={workspaceSize.height}
+          onChange={(e) => onWorkspaceSizeChange('height', e.target.value)}
+          style={{
+            width: '60px',
+            padding: '4px',
+            border: '1px solid #ddd',
+            borderRadius: '4px',
+            fontSize: '12px'
+          }}
+          title="Alto del área de trabajo (ej: 100%, 800px, 90vh)"
+        />
+      </div>
     </div>
   );
 }
