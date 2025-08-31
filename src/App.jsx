@@ -132,7 +132,12 @@ function App() {
           ...sourceTable.columnas,
           [fkColumnName]: {
             dataType: targetTable.columnas[primaryKey]?.dataType || 'integer',
-                        constraints: [{ type: 'FOREIGN KEY', references: targetTable.tableName, on: primaryKey, relationObjectId: newRelationId }],
+                                    constraints: [{
+              type: 'FOREIGN KEY',
+              references: targetTable.tableName,
+              on: primaryKey,
+              metadata: { relationObjectId: newRelationId }
+            }],
             extra: ['Not Null']
           }
         };
@@ -190,9 +195,9 @@ function App() {
         table.columnas[newName] = columnData;
 
         // If the renamed column is a FK, update the relation
-        const fkConstraint = columnData.constraints?.find(c => c.type === 'FOREIGN KEY');
-        if (fkConstraint && fkConstraint.relationObjectId) {
-          const relation = newRelations[fkConstraint.relationObjectId];
+                const fkConstraint = columnData.constraints?.find(c => c.type === 'FOREIGN KEY');
+        if (fkConstraint && fkConstraint.metadata?.relationObjectId) {
+          const relation = newRelations[fkConstraint.metadata.relationObjectId];
           if (relation) {
             relation.fkColumn = newName;
           }
@@ -222,10 +227,10 @@ function App() {
 
       if (table && table.columnas[columnName]) {
         // Check if the column is a foreign key
-        const fkConstraint = table.columnas[columnName].constraints?.find(c => c.type === 'FOREIGN KEY');
-        if (fkConstraint && fkConstraint.relationObjectId) {
+                const fkConstraint = table.columnas[columnName].constraints?.find(c => c.type === 'FOREIGN KEY');
+        if (fkConstraint && fkConstraint.metadata?.relationObjectId) {
           // Delete the associated relation
-          delete newRelations[fkConstraint.relationObjectId];
+          delete newRelations[fkConstraint.metadata.relationObjectId];
         }
 
         // Delete the column
@@ -363,6 +368,32 @@ function App() {
     setDeleteConfirmation({ isOpen: false, edgeId: null });
   };
 
+  const handleAddTable = () => {
+    const newTableId = uuidv4();
+    const newTable = {
+      objectId: newTableId,
+      tableName: `NuevaTabla_${Object.keys(diagram.tables).length + 1}`,
+      columnas: {
+        id: {
+          dataType: 'integer',
+          extra: ['Not Null', 'Auto Increment'],
+          constraints: [{ type: 'PRIMARY KEY' }],
+        },
+      },
+      metadata: {
+        position: { x: Math.random() * 400, y: Math.random() * 400 }, // Random position for new tables
+      },
+    };
+
+    setDiagram(prev => ({
+      ...prev,
+      tables: {
+        ...prev.tables,
+        [newTableId]: newTable,
+      },
+    }));
+  };
+
   const onEdgesDelete = useCallback((deletedEdges) => {
     setDiagram(currentDiagram => {
       const newRelations = { ...currentDiagram.relations };
@@ -373,80 +404,113 @@ function App() {
     });
   }, [setDiagram]);
 
-    const handleExport = () => {
-    const jsonString = `data:text/json;charset=utf-8,${encodeURIComponent(
-      JSON.stringify(diagram, null, 2)
-    )}`;
+      const handleExport = (type = 'full') => {
+    let exportData = diagram;
+    if (type === 'simple') {
+      exportData = JSON.parse(JSON.stringify(diagram)); // Deep copy
+
+      // Remove metadata from tables and their columns
+      Object.values(exportData.tables).forEach(table => {
+        delete table.metadata; // Remove table position metadata
+        Object.values(table.columnas).forEach(column => {
+          if (column.constraints) {
+            column.constraints.forEach(c => {
+              if (c.metadata) {
+                delete c.metadata; // Remove FK relation metadata
+              }
+            });
+          }
+        });
+      });
+
+      // Remove metadata from relations
+      Object.values(exportData.relations).forEach(relation => {
+        delete relation.metadata;
+      });
+    }
+
+    const dataStr = JSON.stringify(exportData, null, 2);
+    const jsonString = `data:text/json;charset=utf-8,${encodeURIComponent(dataStr)}`;
     const link = document.createElement("a");
     link.href = jsonString;
     link.download = "diagram.json";
     link.click();
   };
 
-  const handleImport = (event) => {
-    const fileReader = new FileReader();
-    fileReader.onload = (e) => {
-      try {
-        const importedDiagram = JSON.parse(e.target.result);
-        // Basic validation
-        if (importedDiagram.tables && importedDiagram.relations) {
-          setDiagram(importedDiagram);
-        } else {
-          alert('Archivo JSON no válido.');
-        }
-      } catch (error) {
-        alert('Error al leer el archivo JSON.');
-        console.error(error);
+  const handleExportSql = () => {
+    let sqlScript = '';
+    const { tables, relations } = diagram;
+
+    // Generate CREATE TABLE statements
+    for (const tableId in tables) {
+      const table = tables[tableId];
+      const columnDefinitions = [];
+      const primaryKeys = [];
+
+      for (const columnName in table.columnas) {
+        const column = table.columnas[columnName];
+        let columnDef = `  \`${columnName}\` ${column.dataType.toUpperCase()}`;
+
+        const constraints = new Set(column.constraints?.map(c => c.type) || []);
+        const extras = new Set(column.extra || []);
+
+        if (extras.has('Not Null')) columnDef += ' NOT NULL';
+        if (extras.has('Auto Increment')) columnDef += ' AUTO_INCREMENT';
+        if (constraints.has('UNIQUE')) columnDef += ' UNIQUE';
+        if (constraints.has('PRIMARY KEY')) primaryKeys.push(`\`${columnName}\``);
+
+        columnDefinitions.push(columnDef);
       }
-    };
-    if (event.target.files[0]) {
-      fileReader.readAsText(event.target.files[0]);
+
+      if (primaryKeys.length > 0) {
+        columnDefinitions.push(`  PRIMARY KEY (${primaryKeys.join(', ')})`);
+      }
+
+      sqlScript += `CREATE TABLE \`${table.tableName}\` (\n${columnDefinitions.join(',\n')}\n);\n\n`;
     }
-    // Reset file input
-    event.target.value = null;
+
+    // Generate ALTER TABLE for FOREIGN KEY constraints
+    for (const relationId in relations) {
+      const relation = relations[relationId];
+      const sourceTable = tables[relation.relatedTables[0].objectId];
+      const fkColumnName = relation.fkColumn;
+      const fkConstraint = sourceTable?.columnas[fkColumnName]?.constraints.find(c => c.type === 'FOREIGN KEY');
+
+      if (sourceTable && fkColumnName && fkConstraint) {
+        sqlScript += `ALTER TABLE \`${sourceTable.tableName}\` ADD CONSTRAINT \`fk_${sourceTable.tableName}_${fkConstraint.references}\` FOREIGN KEY (\`${fkColumnName}\`) REFERENCES \`${fkConstraint.references}\`(\`${fkConstraint.on}\`);\n`;
+      }
+    }
+
+    // Trigger download
+    const blob = new Blob([sqlScript], { type: 'application/sql' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'schema.sql';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
-  const handleAddTable = () => {
-    const newTableId = uuidv4();
-    const newTable = {
-      objectId: newTableId,
-      tableName: `Tabla_${Object.keys(diagram.tables).length + 1}`,
-      columnas: {
-        id: {
-          dataType: "integer",
-          extra: ["Not Null", "Auto Increment"],
-          constraints: [{ type: "PRIMARY KEY" }, { type: "UNIQUE" }]
+  const handleImport = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const importedDiagram = JSON.parse(e.target.result);
+          setDiagram(importedDiagram);
+        } catch (error) {
+          console.error("Error parsing JSON file:", error);
+          alert("Error: El archivo no es un JSON válido.");
         }
-      },
-      metadata: {
-        position: { x: Math.random() * 200 + 50, y: Math.random() * 200 + 50 }
-      }
-    };
-
-    setDiagram(prevDiagram => ({
-      ...prevDiagram,
-      tables: {
-        ...prevDiagram.tables,
-        [newTableId]: newTable,
-      },
-    }));
+      };
+      reader.readAsText(file);
+    }
   };
 
   return (
     <div style={{ width: '100vw', height: '100vh' }}>
-            <defs>
-        <marker
-          id="arrow"
-          viewBox="0 0 10 10"
-          refX="8"
-          refY="5"
-          markerWidth="6"
-          markerHeight="6"
-          orient="auto-start-reverse"
-        >
-          <path d="M 0 0 L 10 5 L 0 10 z" fill="#666" />
-        </marker>
-      </defs>
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -459,29 +523,22 @@ function App() {
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
       >
-        <Toolbar 
-          onAddTable={handleAddTable} 
-          onAddRelation={toggleRelationMode}
-          isRelationMode={relationCreation.active}
-          onExport={handleExport}
-          onImport={handleImport}
-        />
+                <Toolbar onAddTable={handleAddTable} onAddRelation={toggleRelationMode} onExport={handleExport} onImport={handleImport} onExportSql={handleExportSql} isRelationMode={relationCreation.active} />
         <Controls />
-                        <Background variant="dots" gap={12} size={1} />
-        <CardinalityMarkers />
-                <ConfirmModal 
-          isOpen={deleteConfirmation.isOpen}
-          message="¿Estás seguro de que quieres eliminar esta relación?"
-          onConfirm={handleEdgeDelete}
-          onCancel={() => setDeleteConfirmation({ isOpen: false, edgeId: null })}
-        />
-        <ConfirmModal 
-          isOpen={deleteTableConfirmation.isOpen}
-          message="¿Estás seguro de que quieres eliminar esta tabla? Se eliminarán todas sus relaciones."
-          onConfirm={handleTableDelete}
+        <Background variant="dots" gap={12} size={1} />
+      </ReactFlow>
+      <ConfirmModal 
+        isOpen={deleteConfirmation.isOpen}
+        message="¿Estás seguro de que quieres eliminar esta relación?"
+        onConfirm={handleEdgeDelete}
+        onCancel={() => setDeleteConfirmation({ isOpen: false, edgeId: null })}
+      />
+      <ConfirmModal 
+        isOpen={deleteTableConfirmation.isOpen}
+        message="¿Estás seguro de que quieres eliminar esta tabla? Se eliminarán todas sus relaciones."
+        onConfirm={handleTableDelete}
           onCancel={() => setDeleteTableConfirmation({ isOpen: false, tableId: null })}
         />
-      </ReactFlow>
     </div>
   );
 }

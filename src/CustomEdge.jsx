@@ -43,48 +43,44 @@ export default function CustomEdge({ id, sourceX, sourceY, targetX, targetY, sou
         markerStart={getMarkerStart(data.cardinality?.source)}
       />
       <EdgeLabelRenderer>
-        <div
-          style={{
-            position: 'absolute',
-            transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
-            pointerEvents: 'all',
-          }}
-          className="nodrag nopan"
-        >
-          <foreignObject
-            width={60}
-            height={40}
-            x={labelX - 30}
-            y={labelY - 20}
-            className="edgebutton-foreignobject"
-            requiredExtensions="http://www.w3.org/1999/xhtml"
+        <>
+          {/* Cardinality Button */}
+          <div
+            style={{
+              position: 'absolute',
+              transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
+              pointerEvents: 'all',
+            }}
+            className="nodrag nopan"
           >
-            <body xmlns="http://www.w3.org/1999/xhtml">
-              <button 
-                className="edgebutton" 
-                onClick={() => handleCardinalityChange(id, data.cardinality)}
-                title="Click to change cardinality"
-              >
-                {data.cardinality?.source || '1'}:{data.cardinality?.target || 'N'}
-              </button>
-            </body>
-          </foreignObject>
+            <button 
+              className="edgebutton"
+              style={buttonStyle}
+              onClick={() => handleCardinalityChange(id, data.cardinality)}
+              title="Click to change cardinality"
+            >
+              {data.cardinality?.source || '1'}:{data.cardinality?.target || 'N'}
+            </button>
+          </div>
 
-          <foreignObject
-            width={20}
-            height={20}
-            x={targetX - 10}
-            y={targetY - 30}
-            className="edgebutton-foreignobject"
-            requiredExtensions="http://www.w3.org/1999/xhtml"
+          {/* Delete Button */}
+          <div
+            style={{
+              position: 'absolute',
+              transform: `translate(-50%, -150%) translate(${targetX}px,${targetY}px)`,
+              pointerEvents: 'all',
+            }}
+            className="nodrag nopan"
           >
-            <body xmlns="http://www.w3.org/1999/xhtml">
-              <button className="edgebutton" onClick={(event) => { event.stopPropagation(); data.onEdgeDelete(id); }}>
-                <FaTrash />
-              </button>
-            </body>
-          </foreignObject>
-        </div>
+            <button 
+              className="edgebutton"
+              style={buttonStyle}
+              onClick={(event) => { event.stopPropagation(); data.onEdgeDelete(id); }}
+            >
+              <FaTrash size={12} />
+            </button>
+          </div>
+        </>
       </EdgeLabelRenderer>
     </>
   );

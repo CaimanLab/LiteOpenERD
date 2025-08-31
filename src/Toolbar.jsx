@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { FaPlus, FaProjectDiagram, FaFileExport, FaFileImport } from 'react-icons/fa';
+import { FaPlus, FaProjectDiagram, FaFileExport, FaFileImport, FaDatabase } from 'react-icons/fa';
 
 const toolbarStyle = {
   position: 'absolute',
@@ -24,7 +24,7 @@ const buttonStyle = {
   borderRadius: '4px'
 };
 
-export default function Toolbar({ onAddTable, onAddRelation, isRelationMode, onExport, onImport }) {
+export default function Toolbar({ onAddTable, onAddRelation, isRelationMode, onExport, onImport, onExportSql }) {
   const importInputRef = React.useRef(null);
 
   const handleImportClick = () => {
@@ -41,7 +41,9 @@ export default function Toolbar({ onAddTable, onAddRelation, isRelationMode, onE
       >
         <FaProjectDiagram /> {isRelationMode ? 'Seleccionando...' : 'Relación'}
       </button>
-      <button style={buttonStyle} onClick={onExport} title="Exportar JSON"><FaFileExport /> Exportar</button>
+      <button onClick={() => onExport('full')}><FaFileExport /> Exportar JSON (Full)</button>
+      <button onClick={() => onExport('simple')}><FaFileExport /> Exportar JSON (Simple)</button>
+      <button onClick={onExportSql}><FaDatabase /> Exportar a SQL</button>
       <input type="file" ref={importInputRef} style={{ display: 'none' }} onChange={onImport} accept=".json" />
       <button style={buttonStyle} onClick={handleImportClick} title="Importar JSON"><FaFileImport /> Importar</button>
     </div>
