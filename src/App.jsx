@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import ReactFlow, { useNodesState, useEdgesState, addEdge, Controls, Background } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { v4 as uuidv4 } from 'uuid';
+import { useTranslation } from 'react-i18next';
 
 import './App.css';
 import Toolbar from './Toolbar';
@@ -61,6 +62,7 @@ const loadState = () => {
 };
 
 function App() {
+  const { t } = useTranslation();
     const [diagram, setDiagram] = useState(loadState);
   const [relationCreation, setRelationCreation] = useState({ active: false, source: null });
     const [deleteConfirmation, setDeleteConfirmation] = useState({ isOpen: false, edgeId: null });
@@ -570,20 +572,20 @@ function App() {
       const importedData = JSON.parse(fileContent);
       
       // Verificar si es un archivo LiteOpenERD válido
-      if (!importedData.metadata || !importedData.metadata.versionLiteOpenERD) {
-        throw new Error("Este no es un archivo de LiteOpenERD válido.");
+      if (!importedData.metadata || !importedData.metadata.versionLiteOpenERD || importedData.metadata.versionLiteOpenERD !== APP_VERSION) {
+        throw new Error(t('common.notValidFile'));
       }
 
       // Verificar compatibilidad de versión
-      const fileVersion = importedData.metadata.versionLiteOpenERD;
-      if (fileVersion !== APP_VERSION) {
-        if (!window.confirm(`Este archivo fue creado con la versión ${fileVersion} de LiteOpenERD.\n\n` +
-                          `Estás usando la versión ${APP_VERSION}.\n\n` +
-                          `¿Deseas intentar importarlo de todos modos?\n\n` +
-                          `Nota: Algunas características podrían no funcionar correctamente.`)) {
-          throw new Error('Importación cancelada por el usuario');
-        }
-      }
+      // const fileVersion = importedData.metadata.versionLiteOpenERD;
+      // if (fileVersion !== APP_VERSION) {
+      //   if (!window.confirm(`Este archivo fue creado con la versión ${fileVersion} de LiteOpenERD.\n\n` +
+      //                     `Estás usando la versión ${APP_VERSION}.\n\n` +
+      //                     `¿Deseas intentar importarlo de todos modos?\n\n` +
+      //                     `Nota: Algunas características podrían no funcionar correctamente.`)) {
+      //     throw new Error('Importación cancelada por el usuario');
+      //   }
+      // }
 
       // Si llegamos aquí, el archivo es válido o el usuario quiere continuar
       // Extraer los datos del diagrama y los metadatos
@@ -608,7 +610,7 @@ function App() {
     } catch (error) {
       console.error("Error al importar el archivo:", error);
       if (error.message !== 'Importación cancelada por el usuario') {
-        alert(`Error al importar el archivo: ${error.message || 'Formato de archivo no válido'}`);
+        alert(t('common.notValidFile'));
       }
     } finally {
       // Reset the file input
@@ -671,13 +673,13 @@ function App() {
       </ReactFlow>
       <ConfirmModal 
         isOpen={deleteConfirmation.isOpen}
-        message="¿Estás seguro de que quieres eliminar esta relación?"
+        message={t('relation.deleteConfirm')}
         onConfirm={handleEdgeDelete}
         onCancel={() => setDeleteConfirmation({ isOpen: false, edgeId: null })}
       />
       <ConfirmModal 
         isOpen={deleteTableConfirmation.isOpen}
-        message="¿Estás seguro de que quieres eliminar esta tabla? Se eliminarán todas sus relaciones."
+        message={t('table.deleteConfirm')}
         onConfirm={handleTableDelete}
           onCancel={() => setDeleteTableConfirmation({ isOpen: false, tableId: null })}
         />

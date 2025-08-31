@@ -1,6 +1,7 @@
 import React, { useRef } from 'react';
-import { FaPlus, FaProjectDiagram, FaFolderOpen, FaDatabase, FaSave } from 'react-icons/fa';
+import { FaPlus, FaProjectDiagram, FaFolderOpen, FaDatabase, FaSave, FaGlobe } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
+import i18n from 'i18next';
 
 const toolbarStyle = {
   position: 'absolute',
@@ -46,7 +47,23 @@ const dividerStyle = {
 // Button hover styles are now handled inline
 
 export default function Toolbar({ onAddTable, onAddRelation, isRelationMode, onExport, onImport, onExportSql, fileInputRef, workspaceSize, onWorkspaceSizeChange }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const [showLanguageMenu, setShowLanguageMenu] = React.useState(false);
+  const languageMenuRef = React.useRef(null);
+
+  // Cerrar el menú al hacer clic fuera de él
+  React.useEffect(() => {
+    function handleClickOutside(event) {
+      if (languageMenuRef.current && !languageMenuRef.current.contains(event.target)) {
+        setShowLanguageMenu(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
   const handleImportClick = () => {
     if (fileInputRef.current) {
       fileInputRef.current.click();
@@ -169,6 +186,74 @@ export default function Toolbar({ onAddTable, onAddRelation, isRelationMode, onE
           }}
           title={`${t('toolbar.height')} (100%, 800px, 90vh)`}
         />
+      </div>
+
+      <div style={dividerStyle} />
+
+      {/* Language Selector */}
+      <div style={{ position: 'relative', display: 'inline-block' }} ref={languageMenuRef}>
+        <button 
+          style={{
+            ...buttonStyle,
+            backgroundColor: showLanguageMenu ? '#f0e6ff' : '#f9f0ff',
+            borderColor: showLanguageMenu ? '#b37feb' : '#d3adf7',
+            color: '#722ed1',
+            padding: '6px 10px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px'
+          }}
+          onClick={() => setShowLanguageMenu(!showLanguageMenu)}
+          title={t('toolbar.changeLanguage')}
+        >
+          <FaGlobe style={{ fontSize: '14px' }} />
+          {i18n.language === 'es' ? '🇪🇸' : '🇬🇧'}
+        </button>
+        {showLanguageMenu && (
+          <div style={{
+            position: 'absolute',
+            right: 0,
+            top: '100%',
+            marginTop: '4px',
+            backgroundColor: 'white',
+            borderRadius: '6px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+            overflow: 'hidden',
+            zIndex: 10,
+            minWidth: '120px'
+          }}>
+          <div 
+            style={{
+              padding: '8px 16px',
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+              backgroundColor: i18n.language === 'es' ? '#f0f5ff' : 'white',
+              color: i18n.language === 'es' ? '#2f54eb' : '#333',
+              ':hover': {
+                backgroundColor: '#f0f5ff'
+              }
+            }}
+            onClick={() => i18n.changeLanguage('es')}
+          >
+            🇪🇸 Español
+          </div>
+          <div 
+            style={{
+              padding: '8px 16px',
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+              backgroundColor: i18n.language === 'en' ? '#f0f5ff' : 'white',
+              color: i18n.language === 'en' ? '#2f54eb' : '#333',
+              ':hover': {
+                backgroundColor: '#f0f5ff'
+              }
+            }}
+            onClick={() => i18n.changeLanguage('en')}
+          >
+            🇬🇧 English
+          </div>
+          </div>
+        )}
       </div>
     </div>
   );
