@@ -21,7 +21,7 @@ export default defineConfig(({ mode }) => {
         '@': fileURLToPath(new URL('./src', import.meta.url))
       }
     },
-    base: '/',
+    base: '/LiteOpenERD/',
     server: {
       port: 3000,
       open: true
