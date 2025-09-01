@@ -29,10 +29,10 @@ const loadState = () => {
         ...initialDiagram,
         metadata: {
           ...initialDiagram.metadata,
-          workspaceSize: {
-            width: '100vw',
-            height: '100vh'
-          }
+          // workspaceSize: {
+          //   width: '100vw',
+          //   height: '100vh'
+          // }
         }
       };
     }
@@ -41,12 +41,12 @@ const loadState = () => {
     if (!parsed.metadata) {
       parsed.metadata = {};
     }
-    if (!parsed.metadata.workspaceSize) {
-      parsed.metadata.workspaceSize = {
-        width: '100vw',
-        height: '100vh'
-      };
-    }
+    // if (!parsed.metadata.workspaceSize) {
+    //   parsed.metadata.workspaceSize = {
+    //     width: '100vw',
+    //     height: '100vh'
+    //   };
+    // }
     return parsed;
   } catch (err) {
     console.error("Could not load state", err);
@@ -71,9 +71,9 @@ function App() {
   const [deleteTableConfirmation, setDeleteTableConfirmation] = useState({ isOpen: false, tableId: null });
   const [nodes, setNodes, onNodesChangeInternal] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
-  const [workspaceSize, setWorkspaceSize] = useState(
-    diagram.metadata?.workspaceSize || { width: '100vw', height: '100vh' }
-  );
+  // const [workspaceSize, setWorkspaceSize] = useState(
+  //   diagram.metadata?.workspaceSize || { width: '100vw', height: '100vh' }
+  // );
 
   // Save state to localStorage whenever diagram changes
   useEffect(() => {
@@ -630,17 +630,17 @@ function App() {
       const { metadata = {}, ...diagramData } = importedData;
       
       // Asegurarse de que el workspaceSize del archivo importado tenga prioridad
-      const newWorkspaceSize = metadata.workspaceSize || { width: '100vw', height: '100vh' };
+      // const newWorkspaceSize = metadata.workspaceSize || { width: '100vw', height: '100vh' };
       
       // Actualizar el estado del tamaño del área de trabajo
-      setWorkspaceSize(newWorkspaceSize);
+      // setWorkspaceSize(newWorkspaceSize);
       
       // Actualizar el diagrama con los datos importados y metadatos actualizados
       setDiagram({
         ...diagramData,
         metadata: {
           ...metadata,
-          workspaceSize: newWorkspaceSize,
+          // workspaceSize: newWorkspaceSize,
           versionLiteOpenERD: APP_VERSION
         }
       });
@@ -658,34 +658,33 @@ function App() {
     }
   };
 
-  const updateWorkspaceSize = (dimension, value) => {
-    const newValue = value.endsWith('%') || value.endsWith('px') || value.endsWith('vw') || value.endsWith('vh') 
-      ? value 
-      : value + 'px';
+  // const updateWorkspaceSize = (dimension, value) => {
+  //   const newValue = value.endsWith('%') || value.endsWith('px') || value.endsWith('vw') || value.endsWith('vh') 
+  //     ? value 
+  //     : value + 'px';
       
-    setWorkspaceSize(prev => ({
-      ...prev,
-      [dimension]: newValue
-    }));
+  //   setWorkspaceSize(prev => ({
+  //     ...prev,
+  //     [dimension]: newValue
+  //   }));
 
-    // Update in diagram metadata
-    setDiagram(prev => ({
-      ...prev,
-      metadata: {
-        ...prev.metadata,
-        workspaceSize: {
-          ...(prev.metadata?.workspaceSize || { width: '100vw', height: '100vh' }),
-          [dimension]: newValue
-        }
-      }
-    }));
-  };
+  //   // Update in diagram metadata
+  //   setDiagram(prev => ({
+  //     ...prev,
+  //     metadata: {
+  //       ...prev.metadata,
+  //       workspaceSize: {
+  //         ...(prev.metadata?.workspaceSize || { width: '100vw', height: '100vh' }),
+  //         [dimension]: newValue
+  //       }
+  //     }
+  //   }));
+  // };
 
   return (
-    <div className="app" style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+    <div className="app" style={{ display: 'flex', flexDirection: 'column', height: '2500px' }}>
       <Header />
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', marginTop: '50px' }}>
-        <Toolbar 
+      <Toolbar 
           onAddTable={handleAddTable} 
           onAddRelation={toggleRelationMode} 
           onExport={handleExport} 
@@ -693,10 +692,12 @@ function App() {
           onExportSql={handleExportSql} 
           isRelationMode={relationCreation.active}
           fileInputRef={fileInputRef}
-          workspaceSize={workspaceSize}
-          onWorkspaceSizeChange={updateWorkspaceSize}
+          // workspaceSize={workspaceSize}
+          // onWorkspaceSizeChange={updateWorkspaceSize}
         />
-        <div style={{ flex: 1, position: 'relative' }} >
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', marginTop: '50px' }}>
+        
+        <div style={{ flex: 1, position: 'relative'}} >
           <ReactFlow
             nodes={nodes}
             edges={edges}
@@ -708,7 +709,6 @@ function App() {
             onNodeClick={onNodeClick}
             nodeTypes={nodeTypes}
             edgeTypes={edgeTypes}
-            style={{ width: '100%', height: '100%' }}
           >
             <Controls />
             <Background variant="dots" gap={12} size={1} />

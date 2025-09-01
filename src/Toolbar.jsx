@@ -44,7 +44,7 @@ const dividerStyle = {
 
 // Button hover styles are now handled inline
 
-export default function Toolbar({ onAddTable, onAddRelation, isRelationMode, onExport, onImport, onExportSql, fileInputRef, workspaceSize, onWorkspaceSizeChange }) {
+export default function Toolbar({ onAddTable, onAddRelation, isRelationMode, onExport, onImport, onExportSql, fileInputRef }) {
   const { t, i18n } = useTranslation();
   const [showLanguageMenu, setShowLanguageMenu] = React.useState(false);
   const languageMenuRef = React.useRef(null);
@@ -168,7 +168,7 @@ export default function Toolbar({ onAddTable, onAddRelation, isRelationMode, onE
       <div style={dividerStyle} />
 
       {/* Workspace Size Controls */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+      {/* <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
         <input
           type="text"
           value={workspaceSize.width}
@@ -200,7 +200,7 @@ export default function Toolbar({ onAddTable, onAddRelation, isRelationMode, onE
         />
       </div>
 
-      <div style={dividerStyle} />
+      <div style={dividerStyle} /> */}
 
       {/* Language Selector */}
       <div style={{ position: 'relative', display: 'inline-block' }} ref={languageMenuRef}>
