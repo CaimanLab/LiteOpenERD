@@ -34,7 +34,7 @@ const addButtonStyle = {
   backgroundColor: '#f9f9f9',
 };
 
-const DATA_TYPES = ['varchar', 'integer', 'double', 'datetime', 'date'];
+const DATA_TYPES = ['varchar', 'text', 'integer', 'double', 'datetime', 'date'];
 
 function Column({ name, type, tableId, onNameChange, onTypeChange, onDelete, onColumnPropertyChange, isLast, columnData }) {
   const [isEditing, setIsEditing] = useState(false);
@@ -88,11 +88,11 @@ function Column({ name, type, tableId, onNameChange, onTypeChange, onDelete, onC
     borderBottom: isLast ? 'none' : '1px solid #eee',
   };
 
-  const labelStyle = { 
-    display: 'flex', 
-    alignItems: 'center', 
-    gap: '8px', 
-    cursor: 'default' 
+  const labelStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    cursor: 'default'
   };
 
   const isPrimaryKey = columnData?.constraints?.some(c => c.type === 'PRIMARY KEY');
@@ -105,9 +105,9 @@ function Column({ name, type, tableId, onNameChange, onTypeChange, onDelete, onC
     <>
       <div style={columnStyle} onClick={() => setIsExpanded(!isExpanded)}>
         {isEditing ? (
-          <input 
-            type="text" 
-            value={currentName} 
+          <input
+            type="text"
+            value={currentName}
             onChange={handleNameChange}
             onKeyDown={handleKeyDown}
             onBlur={handleBlur}
@@ -118,22 +118,22 @@ function Column({ name, type, tableId, onNameChange, onTypeChange, onDelete, onC
         ) : (
           <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
             {isPrimaryKey && <FaKey title="Primary Key" style={{ color: '#f1c40f', marginRight: '5px' }} />}
-            {isForeignKey && <FaExternalLinkAlt title={`Foreign Key: references ${columnData.constraints.find(c=>c.type==='FOREIGN KEY').references}`} style={{ color: '#3498db', marginRight: '5px' }} />}
+            {isForeignKey && <FaExternalLinkAlt title={`Foreign Key: references ${columnData.constraints.find(c => c.type === 'FOREIGN KEY').references}`} style={{ color: '#3498db', marginRight: '5px' }} />}
             <span onDoubleClick={(e) => { e.stopPropagation(); setIsEditing(true); }} title="Double click to edit">{name}</span>
           </div>
         )}
         <div style={{ display: 'flex', alignItems: 'center' }}>
-          <select 
-            value={type} 
-            onChange={(e) => onTypeChange(tableId, name, e.target.value)} 
+          <select
+            value={type}
+            onChange={(e) => onTypeChange(tableId, name, e.target.value)}
             onClick={(e) => e.stopPropagation()} // Prevent closing the details view
             style={{ marginLeft: '10px', border: '1px solid #ccc', borderRadius: '3px' }}
           >
             {DATA_TYPES.map(dt => <option key={dt} value={dt}>{dt}</option>)}
           </select>
-          <button 
-            onClick={(e) => { e.stopPropagation(); onDelete(tableId, name); }} 
-            style={deleteButtonStyle} 
+          <button
+            onClick={(e) => { e.stopPropagation(); onDelete(tableId, name); }}
+            style={deleteButtonStyle}
             title="Delete column"
           >
             <FaTrash />
@@ -178,34 +178,34 @@ export default function TableNode({ data }) {
   return (
     <div style={tableNodeStyle}>
       <Handle type="target" position={Position.Top} />
-            <div style={{...headerStyle, padding: isEditing ? '4px' : '8px 10px'}} onDoubleClick={handleDoubleClick}>
-        <div style={{flexGrow: 1, textAlign: 'center'}}>
-        {isEditing ? (
-          <input
-            type="text"
-            value={tableName}
-            onChange={handleNameChange}
-            onBlur={handleNameBlur}
-            onKeyDown={handleKeyDown}
-            autoFocus
-          />
-        ) : (
-                    data.label
-        )}
+      <div style={{ ...headerStyle, padding: isEditing ? '4px' : '8px 10px' }} onDoubleClick={handleDoubleClick}>
+        <div style={{ flexGrow: 1, textAlign: 'center' }}>
+          {isEditing ? (
+            <input
+              type="text"
+              value={tableName}
+              onChange={handleNameChange}
+              onBlur={handleNameBlur}
+              onKeyDown={handleKeyDown}
+              autoFocus
+            />
+          ) : (
+            data.label
+          )}
         </div>
-        <button onClick={(e) => { e.stopPropagation(); data.onDeleteTable(data.id); }} style={{background: 'none', border: 'none', color: 'white', cursor: 'default', padding: '0 5px'}} title="Delete table">
+        <button onClick={(e) => { e.stopPropagation(); data.onDeleteTable(data.id); }} style={{ background: 'none', border: 'none', color: 'white', cursor: 'default', padding: '0 5px' }} title="Delete table">
           <FaTrash size={12} />
         </button>
       </div>
       <div>
         {Object.entries(data.columns || {}).map(([name, col], index, arr) => (
-          <Column 
-            key={name} 
-                        name={name} 
-            type={col.dataType} 
-            tableId={data.id} 
+          <Column
+            key={name}
+            name={name}
+            type={col.dataType}
+            tableId={data.id}
             columnData={col}
-            onNameChange={data.onColumnNameChange} 
+            onNameChange={data.onColumnNameChange}
             onTypeChange={data.onColumnTypeChange}
             onDelete={data.onColumnDelete}
             onColumnPropertyChange={data.onColumnPropertyChange}
