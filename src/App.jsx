@@ -491,9 +491,11 @@ function App() {
           fkColumn: relation.fkColumn
         };
       });
+
+       exportData = buildSimpleJSON(exportData);
     }
 
-    exportData = buildSimpleJSON(exportData);
+   
 
     const dataStr = JSON.stringify(exportData, null, 2);
     const jsonString = `data:text/json;charset=utf-8,${encodeURIComponent(dataStr)}`;
