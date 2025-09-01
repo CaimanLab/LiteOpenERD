@@ -22,9 +22,10 @@
   "toolbar": {
     "newTable": "New Table",
     "addRelation": "Add Relation",
-    "export": "Export",
-    "import": "Import",
+    "export": "Save",
+    "import": "Open",
     "exportSQL": "Export SQL",
+    "exportJSON": "Export JSON",
     "workspaceSize": "Workspace Size",
     "width": "Width",
     "height": "Height"

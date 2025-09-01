@@ -22,9 +22,10 @@
   "toolbar": {
     "newTable": "Nueva Tabla",
     "addRelation": "Añadir Relación",
-    "export": "Exportar",
-    "import": "Importar",
+    "export": "Guardar",
+    "import": "Abrir",
     "exportSQL": "Exportar SQL",
+    "exportJSON": "Exportar JSON",
     "workspaceSize": "Tamaño del Área",
     "width": "Ancho",
     "height": "Alto"
@@ -50,7 +51,7 @@
     "oneToOne": "Uno a Uno",
     "oneToMany": "Uno a Muchos",
     "manyToMany": "Muchos a Muchos",
-    "selectColumns": "Seleccionar Columnas",
+    "selectColumns": "Seleccionar columnas",
     "deleteConfirm": "¿Estás seguro de que quieres eliminar esta relación?"
   },
   "messages": {

@@ -72,20 +72,20 @@ export default function Toolbar({ onAddTable, onAddRelation, isRelationMode, onE
   return (
     <div style={toolbarStyle}>
       {/* Diagram Actions */}
-      <button 
+      <button
         style={{
           ...buttonStyle,
           backgroundColor: 'white',
           borderColor: '#e0e0e0',
           color: '#333'
-        }} 
-        onClick={onAddTable} 
+        }}
+        onClick={onAddTable}
         title={t('toolbar.newTable')}
       >
         <FaPlus style={{ fontSize: '14px' }} /> {t('toolbar.newTable')}
       </button>
-      
-      <button 
+
+      <button
         style={{
           ...buttonStyle,
           backgroundColor: isRelationMode ? '#e6f7ff' : 'white',
@@ -95,33 +95,33 @@ export default function Toolbar({ onAddTable, onAddRelation, isRelationMode, onE
         onClick={onAddRelation}
         title={t('toolbar.addRelation')}
       >
-        <FaProjectDiagram style={{ fontSize: '14px' }} /> 
+        <FaProjectDiagram style={{ fontSize: '14px' }} />
         {isRelationMode ? t('common.selecting') : t('toolbar.addRelation')}
       </button>
 
       <div style={dividerStyle} />
 
       {/* File Actions */}
-      <button 
+      <button
         style={{
           ...buttonStyle,
           backgroundColor: '#f6ffed',
           borderColor: '#b7eb8f',
           color: '#237804'
-        }} 
-        onClick={handleImportClick} 
+        }}
+        onClick={handleImportClick}
         title={t('toolbar.import')}
       >
         <FaFolderOpen style={{ fontSize: '14px' }} /> {t('toolbar.import')}
       </button>
-      
-      <button 
+
+      <button
         style={{
           ...buttonStyle,
           backgroundColor: '#f6ffed',
           borderColor: '#b7eb8f',
           color: '#237804'
-        }} 
+        }}
         onClick={() => onExport('full')}
         title={t('toolbar.export')}
       >
@@ -131,19 +131,33 @@ export default function Toolbar({ onAddTable, onAddRelation, isRelationMode, onE
       <div style={dividerStyle} />
 
       {/* Export Actions */}
-      <button 
+      <button
         style={{
           ...buttonStyle,
           backgroundColor: '#fff7e6',
           borderColor: '#ffd591',
           color: '#ad4e00'
-        }} 
+        }}
+        onClick={() => onExport('simple')}
+        title={t('toolbar.exportJSON')}
+      >
+        <FaDatabase style={{ fontSize: '14px' }} /> {t('toolbar.exportJSON')}
+      </button>
+      
+      <button
+        style={{
+          ...buttonStyle,
+          backgroundColor: '#fff7e6',
+          borderColor: '#ffd591',
+          color: '#ad4e00'
+        }}
         onClick={onExportSql}
         title={t('toolbar.exportSQL')}
       >
         <FaDatabase style={{ fontSize: '14px' }} /> {t('toolbar.exportSQL')}
       </button>
 
+      
       <input
         type="file"
         ref={fileInputRef}
@@ -191,7 +205,7 @@ export default function Toolbar({ onAddTable, onAddRelation, isRelationMode, onE
 
       {/* Language Selector */}
       <div style={{ position: 'relative', display: 'inline-block' }} ref={languageMenuRef}>
-        <button 
+        <button
           style={{
             ...buttonStyle,
             backgroundColor: showLanguageMenu ? '#f0e6ff' : '#f9f0ff',
@@ -221,42 +235,42 @@ export default function Toolbar({ onAddTable, onAddRelation, isRelationMode, onE
             zIndex: 10,
             minWidth: '120px'
           }}>
-          <div 
-            style={{
-              padding: '8px 16px',
-              cursor: 'pointer',
-              whiteSpace: 'nowrap',
-              backgroundColor: i18n.language === 'es' ? '#f0f5ff' : 'white',
-              color: i18n.language === 'es' ? '#2f54eb' : '#333',
-              ':hover': {
-                backgroundColor: '#f0f5ff'
-              }
-            }}
-            onClick={() => {
-              i18n.changeLanguage('es');
-              setShowLanguageMenu(false);
-            }}
-          >
-            🇪🇸 Español
-          </div>
-          <div 
-            style={{
-              padding: '8px 16px',
-              cursor: 'pointer',
-              whiteSpace: 'nowrap',
-              backgroundColor: i18n.language === 'en' ? '#f0f5ff' : 'white',
-              color: i18n.language === 'en' ? '#2f54eb' : '#333',
-              ':hover': {
-                backgroundColor: '#f0f5ff'
-              }
-            }}
-            onClick={() => {
-              i18n.changeLanguage('en');
-              setShowLanguageMenu(false);
-            }}
-          >
-            🇬🇧 English
-          </div>
+            <div
+              style={{
+                padding: '8px 16px',
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                backgroundColor: i18n.language === 'es' ? '#f0f5ff' : 'white',
+                color: i18n.language === 'es' ? '#2f54eb' : '#333',
+                ':hover': {
+                  backgroundColor: '#f0f5ff'
+                }
+              }}
+              onClick={() => {
+                i18n.changeLanguage('es');
+                setShowLanguageMenu(false);
+              }}
+            >
+              🇪🇸 Español
+            </div>
+            <div
+              style={{
+                padding: '8px 16px',
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                backgroundColor: i18n.language === 'en' ? '#f0f5ff' : 'white',
+                color: i18n.language === 'en' ? '#2f54eb' : '#333',
+                ':hover': {
+                  backgroundColor: '#f0f5ff'
+                }
+              }}
+              onClick={() => {
+                i18n.changeLanguage('en');
+                setShowLanguageMenu(false);
+              }}
+            >
+              🇬🇧 English
+            </div>
           </div>
         )}
       </div>

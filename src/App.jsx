@@ -101,7 +101,7 @@ function App() {
           onColumnDelete: handleColumnDelete,
                     onColumnPropertyChange: handleColumnPropertyChange,
           onDeleteTable: requestTableDelete,
-        columns: table.columnas
+        columns: table.columns
       },
     }));
     const newEdges = Object.values(diagram.relations).map(relation => ({
@@ -149,25 +149,25 @@ function App() {
     if (!relationCreation.active) return;
 
     if (!relationCreation.source) {
-      setRelationCreation({ ...relationCreation, source: node.id });
+      setRelationCreation({ ...relationCreation, source: node });
       // Optionally, add visual feedback for the source node
     } else {
       const newRelationId = uuidv4();
-              const sourceTable = diagram.tables[relationCreation.source];
+              const sourceTable = diagram.tables[relationCreation.source.id];
         const targetTable = diagram.tables[node.id];
 
         // Find primary key of target table
-        const primaryKey = Object.keys(targetTable.columnas).find(colName => 
-          targetTable.columnas[colName].constraints?.some(c => c.type === 'PRIMARY KEY')
+        const primaryKey = Object.keys(targetTable.columns).find(colName => 
+          targetTable.columns[colName].constraints?.some(c => c.type === 'PRIMARY KEY')
         ) || 'id'; // fallback to 'id'
 
         const fkColumnName = `${targetTable.tableName.toLowerCase()}_${primaryKey}`;
 
         // Add FK column to source table
         const newSourceTableColumns = {
-          ...sourceTable.columnas,
+          ...sourceTable.columns,
           [fkColumnName]: {
-            dataType: targetTable.columnas[primaryKey]?.dataType || 'integer',
+            dataType: targetTable.columns[primaryKey]?.dataType || 'integer',
                                     constraints: [{
               type: 'FOREIGN KEY',
               references: targetTable.tableName,
@@ -178,20 +178,20 @@ function App() {
           }
         };
 
-        const newSourceTable = { ...sourceTable, columnas: newSourceTableColumns };
+        const newSourceTable = { ...sourceTable, columns: newSourceTableColumns };
 
         const newRelation = {
           objectId: newRelationId,
-          relationName: `Rel_${relationCreation.source}_${node.id}`,
+          relationName: `${relationCreation.source.data.label}_${node.data.label}`,
                     cardinality: { source: '1', target: 'N' }, // Default to One-to-Many
-          relatedTables: [{ objectId: relationCreation.source }, { objectId: node.id }],
+          relatedTables: [{ objectId: relationCreation.source.id, tableName: relationCreation.source.data.label }, { objectId: node.id, tableName: node.data.label }],
           fkColumn: fkColumnName,
           metadata: {},
         };
 
         setDiagram(prev => ({
           ...prev,
-          tables: { ...prev.tables, [relationCreation.source]: newSourceTable },
+          tables: { ...prev.tables, [relationCreation.source.id]: newSourceTable },
           relations: {
             ...prev.relations,
             [newRelationId]: newRelation,
@@ -225,10 +225,10 @@ function App() {
       const newRelations = { ...prev.relations };
       const table = newTables[tableId];
 
-      if (table && table.columnas[oldName] && !table.columnas[newName]) {
-        const columnData = { ...table.columnas[oldName] };
-        delete table.columnas[oldName];
-        table.columnas[newName] = columnData;
+      if (table && table.columns[oldName] && !table.columns[newName]) {
+        const columnData = { ...table.columns[oldName] };
+        delete table.columns[oldName];
+        table.columns[newName] = columnData;
 
         // If the renamed column is a FK, update the relation
                 const fkConstraint = columnData.constraints?.find(c => c.type === 'FOREIGN KEY');
@@ -248,8 +248,8 @@ function App() {
     setDiagram(prev => {
       const newTables = { ...prev.tables };
       const table = newTables[tableId];
-      if (table && table.columnas[columnName]) {
-        table.columnas[columnName].dataType = newType;
+      if (table && table.columns[columnName]) {
+        table.columns[columnName].dataType = newType;
       }
       return { ...prev, tables: newTables };
     });
@@ -261,16 +261,16 @@ function App() {
       const newRelations = { ...prev.relations };
       const table = newTables[tableId];
 
-      if (table && table.columnas[columnName]) {
+      if (table && table.columns[columnName]) {
         // Check if the column is a foreign key
-                const fkConstraint = table.columnas[columnName].constraints?.find(c => c.type === 'FOREIGN KEY');
+                const fkConstraint = table.columns[columnName].constraints?.find(c => c.type === 'FOREIGN KEY');
         if (fkConstraint && fkConstraint.metadata?.relationObjectId) {
           // Delete the associated relation
           delete newRelations[fkConstraint.metadata.relationObjectId];
         }
 
         // Delete the column
-        delete table.columnas[columnName];
+        delete table.columns[columnName];
       }
 
       return { ...prev, tables: newTables, relations: newRelations };
@@ -280,7 +280,7 @@ function App() {
     const handleColumnPropertyChange = (tableId, columnName, property, value) => {
     setDiagram(prev => {
       const newTables = { ...prev.tables };
-      const column = newTables[tableId]?.columnas[columnName];
+      const column = newTables[tableId]?.columns[columnName];
       if (!column) return prev;
 
       const constraints = new Set(column.constraints?.map(c => c.type) || []);
@@ -308,8 +308,8 @@ function App() {
       const newTables = { ...prev.tables };
       const table = newTables[tableId];
       if (table) {
-        const newColumnName = `columna_${Object.keys(table.columnas).length + 1}`;
-        table.columnas[newColumnName] = {
+        const newColumnName = `columna_${Object.keys(table.columns).length + 1}`;
+        table.columns[newColumnName] = {
           dataType: "varchar",
           extra: [],
           constraints: []
@@ -340,7 +340,7 @@ function App() {
           // If a relation is deleted, also remove the FK column from the source table
           const sourceTableId = relation.relatedTables[0].objectId;
           if (newTables[sourceTableId] && relation.fkColumn) {
-            delete newTables[sourceTableId].columnas[relation.fkColumn];
+            delete newTables[sourceTableId].columns[relation.fkColumn];
           }
 
           delete newRelations[relationId];
@@ -390,8 +390,8 @@ function App() {
         const sourceTableId = relationToDelete.relatedTables[0].objectId;
         const fkColumn = relationToDelete.fkColumn;
 
-        if (newTables[sourceTableId] && newTables[sourceTableId].columnas[fkColumn]) {
-          delete newTables[sourceTableId].columnas[fkColumn];
+        if (newTables[sourceTableId] && newTables[sourceTableId].columns[fkColumn]) {
+          delete newTables[sourceTableId].columns[fkColumn];
         }
 
         // Delete the relation
@@ -409,7 +409,7 @@ function App() {
     const newTable = {
       objectId: newTableId,
       tableName: `NuevaTabla_${Object.keys(diagram.tables).length + 1}`,
-      columnas: {
+      columns: {
         id: {
           dataType: 'integer',
           extra: ['Not Null', 'Auto Increment'],
@@ -467,11 +467,11 @@ function App() {
         exportData.tables[id] = {
           ...table,
           metadata: undefined, // Remove position metadata
-          columnas: { ...table.columnas }
+          columns: { ...table.columns }
         };
 
         // Clean up column data
-        Object.values(exportData.tables[id].columnas).forEach(column => {
+        Object.values(exportData.tables[id].columns).forEach(column => {
           if (column.constraints) {
             column.constraints = column.constraints.map(({ type, references, on }) => ({
               type,
@@ -493,13 +493,47 @@ function App() {
       });
     }
 
+    exportData = buildSimpleJSON(exportData);
+
     const dataStr = JSON.stringify(exportData, null, 2);
     const jsonString = `data:text/json;charset=utf-8,${encodeURIComponent(dataStr)}`;
     const link = document.createElement("a");
     link.href = jsonString;
-    link.download = "diagram.json";
+    link.download = `${type==='full'?'rawDiagram':'exportedDiagram'}.json`;
     link.click();
   };
+
+
+  const buildSimpleJSON = (rawJson) => {
+    const simpleData = {
+      tables: [],
+      relations: []
+    };  
+
+    // Process tables (copy only necessary data)
+    Object.values(rawJson.tables).forEach(table => {
+      const simple = {
+        tableName: table.tableName,
+        columns: table.columns
+      }
+
+      simpleData.tables.push(simple)
+    })
+
+    // Object.values(rawJson.relations).forEach(relation => {
+    //   const simple = {
+    //     relationName: relation.relationName,
+    //     cardinality: relation.cardinality,
+    //     relatedTables: relation.relatedTables,
+    //     fkColumn: relation.fkColumn
+    //   }
+
+    //   simpleData.relations.push(simple)
+    // })
+
+    return simpleData;
+    
+  }
 
   const handleExportSql = () => {
     let sqlScript = '';
@@ -511,8 +545,8 @@ function App() {
       const columnDefinitions = [];
       const primaryKeys = [];
 
-      for (const columnName in table.columnas) {
-        const column = table.columnas[columnName];
+      for (const columnName in table.columns) {
+        const column = table.columns[columnName];
         let columnDef = `  \`${columnName}\` ${column.dataType.toUpperCase()}`;
 
         const constraints = new Set(column.constraints?.map(c => c.type) || []);
@@ -538,7 +572,7 @@ function App() {
       const relation = relations[relationId];
       const sourceTable = tables[relation.relatedTables[0].objectId];
       const fkColumnName = relation.fkColumn;
-      const fkConstraint = sourceTable?.columnas[fkColumnName]?.constraints.find(c => c.type === 'FOREIGN KEY');
+      const fkConstraint = sourceTable?.columns[fkColumnName]?.constraints.find(c => c.type === 'FOREIGN KEY');
 
       if (sourceTable && fkColumnName && fkConstraint) {
         sqlScript += `ALTER TABLE \`${sourceTable.tableName}\` ADD CONSTRAINT \`fk_${sourceTable.tableName}_${fkConstraint.references}\` FOREIGN KEY (\`${fkColumnName}\`) REFERENCES \`${fkConstraint.references}\`(\`${fkConstraint.on}\`);\n`;
@@ -574,6 +608,7 @@ function App() {
       
       // Verificar si es un archivo LiteOpenERD válido
       if (!importedData.metadata || !importedData.metadata.versionLiteOpenERD || importedData.metadata.versionLiteOpenERD !== APP_VERSION) {
+        console.error(t('common.notValidFile'));
         throw new Error(t('common.notValidFile'));
       }
 
