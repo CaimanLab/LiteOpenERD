@@ -7,7 +7,9 @@ const tableNodeStyle = {
   border: '1px solid #ccc',
   borderRadius: '3px',
   minWidth: '180px',
-  boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+  boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+  cursor: 'default'
+
 };
 
 const headerStyle = {
@@ -27,7 +29,7 @@ const addButtonStyle = {
   width: '100%',
   marginTop: '10px',
   padding: '5px',
-  cursor: 'pointer',
+  cursor: 'default',
   border: '1px dashed #ccc',
   backgroundColor: '#f9f9f9',
 };
@@ -66,13 +68,13 @@ function Column({ name, type, tableId, onNameChange, onTypeChange, onDelete, onC
     padding: '4px 10px',
     borderBottom: isLast ? 'none' : '1px solid #eee',
     fontSize: '14px',
-    cursor: 'pointer'
+    cursor: 'default'
   }
 
   const deleteButtonStyle = {
     background: 'none',
     border: 'none',
-    cursor: 'pointer',
+    cursor: 'default',
     color: '#aaa',
     display: 'flex',
     alignItems: 'center',
@@ -90,7 +92,7 @@ function Column({ name, type, tableId, onNameChange, onTypeChange, onDelete, onC
     display: 'flex', 
     alignItems: 'center', 
     gap: '8px', 
-    cursor: 'pointer' 
+    cursor: 'default' 
   };
 
   const isPrimaryKey = columnData?.constraints?.some(c => c.type === 'PRIMARY KEY');
@@ -191,7 +193,7 @@ export default function TableNode({ data }) {
                     data.label
         )}
         </div>
-        <button onClick={(e) => { e.stopPropagation(); data.onDeleteTable(data.id); }} style={{background: 'none', border: 'none', color: 'white', cursor: 'pointer', padding: '0 5px'}} title="Delete table">
+        <button onClick={(e) => { e.stopPropagation(); data.onDeleteTable(data.id); }} style={{background: 'none', border: 'none', color: 'white', cursor: 'default', padding: '0 5px'}} title="Delete table">
           <FaTrash size={12} />
         </button>
       </div>

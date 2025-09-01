@@ -16,7 +16,7 @@ export default function CustomEdge({ id, sourceX, sourceY, targetX, targetY, sou
   });
 
   const buttonStyle = {
-    cursor: 'pointer',
+    cursor: 'default',
     background: '#f0f0f0',
     border: '1px solid #ccc',
     borderRadius: '50%',

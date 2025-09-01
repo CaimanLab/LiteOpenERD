@@ -694,7 +694,7 @@ function App() {
           workspaceSize={workspaceSize}
           onWorkspaceSizeChange={updateWorkspaceSize}
         />
-        <div style={{ flex: 1, position: 'relative' }}>
+        <div style={{ flex: 1, position: 'relative' }} >
           <ReactFlow
             nodes={nodes}
             edges={edges}

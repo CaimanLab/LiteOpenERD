@@ -31,7 +31,6 @@ const buttonStyle = {
   padding: '10px 20px',
   border: 'none',
   borderRadius: '5px',
-  cursor: 'pointer',
 };
 
 export default function ConfirmModal({ isOpen, message, onConfirm, onCancel }) {

@@ -21,7 +21,6 @@ const toolbarStyle = {
 
 const buttonStyle = {
   padding: '6px 12px',
-  cursor: 'pointer',
   display: 'flex',
   alignItems: 'center',
   gap: '6px',
@@ -238,7 +237,7 @@ export default function Toolbar({ onAddTable, onAddRelation, isRelationMode, onE
             <div
               style={{
                 padding: '8px 16px',
-                cursor: 'pointer',
+                cursor: 'default',
                 whiteSpace: 'nowrap',
                 backgroundColor: i18n.language === 'es' ? '#f0f5ff' : 'white',
                 color: i18n.language === 'es' ? '#2f54eb' : '#333',
@@ -256,7 +255,7 @@ export default function Toolbar({ onAddTable, onAddRelation, isRelationMode, onE
             <div
               style={{
                 padding: '8px 16px',
-                cursor: 'pointer',
+                cursor: 'default',
                 whiteSpace: 'nowrap',
                 backgroundColor: i18n.language === 'en' ? '#f0f5ff' : 'white',
                 color: i18n.language === 'en' ? '#2f54eb' : '#333',
